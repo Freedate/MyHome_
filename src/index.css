@@ -1,0 +1,222 @@
+/* ── 디자인 토큰 ── */
+:root {
+  --bg:          #0f1420;
+  --bg-card:     #151c2e;
+  --bg-hover:    #1a2340;
+  --bg-wash-1:   rgba(30, 45, 90, 0.8);
+  --bg-wash-2:   rgba(20, 35, 70, 0.6);
+
+  --border:      rgba(255, 255, 255, 0.08);
+  --border-hi:   rgba(255, 255, 255, 0.18);
+
+  --text-primary:   #eceaf4;
+  --text-secondary: #7a8aaa;
+  --text-muted:     #3a4a6a;
+
+  --accent:      #7eb4f4;
+  --accent-dim:  rgba(126, 180, 244, 0.12);
+
+  --font-sans: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  --font-mono: 'Courier New', monospace;
+
+  --nav-h: 60px;
+  --max-w: 900px;
+  --ease:  cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── 리셋 ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* 네이비 워시 배경 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 50%, var(--bg-wash-1) 0%, transparent 65%),
+    radial-gradient(ellipse at 75% 60%, var(--bg-wash-2) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root { position: relative; z-index: 1; }
+a { color: inherit; text-decoration: none; }
+
+/* ── 레이아웃 ── */
+.page {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: calc(var(--nav-h) + 48px) 24px 80px;
+}
+
+/* ── Navbar ── */
+.navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  background: rgba(15, 20, 32, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+}
+
+.navbar-inner {
+  max-width: var(--max-w);
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: color 0.2s var(--ease), background 0.2s var(--ease);
+  letter-spacing: 0.03em;
+}
+
+.nav-links a:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.nav-links a.active {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Home 페이지 ── */
+.home {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+
+.home-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeIn 0.8s var(--ease) 0.1s both;
+}
+
+.home-name {
+  font-size: clamp(56px, 10vw, 96px);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+}
+
+.home-name.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.home-accent {
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  margin: 20px auto;
+  transition: width 1s var(--ease) 0.2s;
+}
+
+.home-accent.visible { width: 40px; }
+
+.home-subtitle {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  letter-spacing: 0.14em;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+  margin-bottom: 36px;
+}
+
+.home-subtitle.visible { opacity: 1; }
+
+.home-nav {
+  display: flex;
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+
+.home-nav.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.home-nav button {
+  font-size: 12px;
+  font-family: var(--font-sans);
+  padding: 10px 28px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-right: 0.5px solid var(--border);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.home-nav button:last-child { border-right: none; }
+
+.home-nav button:hover {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
