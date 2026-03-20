@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import About from './pages/About'
@@ -10,9 +11,24 @@ import Admin from './pages/Admin'
 import Write from './pages/Write'
 import Edit from './pages/Edit'
 
+function PageTracker() {
+  const location = useLocation()
+
+  useEffect(() => {
+    if (window.gtag) {
+      window.gtag('config', import.meta.env.VITE_GA_ID, {
+        page_path: location.pathname,
+      })
+    }
+  }, [location])
+
+  return null
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <>
+      <PageTracker />
       <Navbar />
       <main>
         <Routes>
@@ -28,6 +44,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-    </BrowserRouter>
+    </>
   )
 }
