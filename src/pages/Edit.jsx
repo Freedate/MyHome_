@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import ResizableImage from 'tiptap-extension-resize-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { supabase } from '../supabase'
+import { uploadImage } from '../utils/uploadImage'
 
 export default function Edit() {
   const { id } = useParams()
@@ -14,10 +16,13 @@ export default function Edit() {
   const [loading, setLoading]       = useState(false)
   const [fetching, setFetching]     = useState(true)
   const [error, setError]           = useState(null)
+  const [uploading, setUploading]   = useState(false)
+  const imageInputRef = useRef(null)
 
   const editor = useEditor({
     extensions: [
       StarterKit,
+      ResizableImage,
       Placeholder.configure({ placeholder: '내용을 입력하세요...' }),
     ],
     editorProps: {
@@ -30,32 +35,38 @@ export default function Edit() {
       if (!session) { navigate('/admin'); return }
     })
 
-    async function fetchCategories() {
-      const { data } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
-      setCategories(data || [])
-    }
+    async function fetchData() {
+      const [postRes, categoriesRes] = await Promise.all([
+        supabase.from('posts').select('*').eq('id', id).single(),
+        supabase.from('categories').select('*').order('name', { ascending: true }),
+      ])
 
-    async function fetchPost() {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('id', id)
-        .single()
+      if (postRes.error || !postRes.data) { navigate('/admin'); return }
 
-      if (error || !data) { navigate('/admin'); return }
-
-      setTitle(data.title)
-      setCategory(data.category || '')
-      editor?.commands.setContent(data.content)
+      setTitle(postRes.data.title)
+      setCategory(postRes.data.category || '')
+      editor?.commands.setContent(postRes.data.content)
+      setCategories(categoriesRes.data || [])
       setFetching(false)
     }
 
-    fetchCategories()
-    if (editor) fetchPost()
+    if (editor) fetchData()
   }, [editor])
+
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const url = await uploadImage(file)
+      editor?.chain().focus().setImage({ src: url }).run()
+    } catch {
+      setError('이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   async function handleSave() {
     if (!title.trim())             return setError('제목을 입력해주세요.')
@@ -144,6 +155,21 @@ export default function Edit() {
           onClick={() => editor?.chain().focus().toggleBlockquote().run()}>" 인용</button>
         <button className={`write-tool${editor?.isActive('codeBlock') ? ' active' : ''}`}
           onClick={() => editor?.chain().focus().toggleCodeBlock().run()}>{'</>'}</button>
+        <span className="write-tool-sep" />
+        <button
+          className="write-tool"
+          onClick={() => imageInputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? '업로드 중...' : '🖼 이미지'}
+        </button>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleImageUpload}
+        />
       </div>
 
       <div className="write-editor">

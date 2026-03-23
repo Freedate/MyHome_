@@ -1,16 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import ResizableImage from 'tiptap-extension-resize-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { supabase } from '../supabase'
+import { uploadImage } from '../utils/uploadImage'
 
 export default function Write() {
-  const [title, setTitle]         = useState('')
-  const [category, setCategory]   = useState('')
+  const [title, setTitle]           = useState('')
+  const [category, setCategory]     = useState('')
   const [categories, setCategories] = useState([])
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState(null)
+  const [loading, setLoading]       = useState(false)
+  const [error, setError]           = useState(null)
+  const [uploading, setUploading]   = useState(false)
+  const imageInputRef = useRef(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,6 +34,7 @@ export default function Write() {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      ResizableImage,
       Placeholder.configure({ placeholder: '내용을 입력하세요...' }),
     ],
     editorProps: {
@@ -37,9 +42,24 @@ export default function Write() {
     },
   })
 
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const url = await uploadImage(file)
+      editor?.chain().focus().setImage({ src: url }).run()
+    } catch {
+      setError('이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
   async function handleSave() {
-    if (!title.trim())            return setError('제목을 입력해주세요.')
-    if (!category)                return setError('카테고리를 선택해주세요.')
+    if (!title.trim())             return setError('제목을 입력해주세요.')
+    if (!category)                 return setError('카테고리를 선택해주세요.')
     if (!editor?.getText().trim()) return setError('내용을 입력해주세요.')
 
     setLoading(true)
@@ -125,6 +145,21 @@ export default function Write() {
           onClick={() => editor?.chain().focus().toggleBlockquote().run()}>" 인용</button>
         <button className={`write-tool${editor?.isActive('codeBlock') ? ' active' : ''}`}
           onClick={() => editor?.chain().focus().toggleCodeBlock().run()}>{'</>'}</button>
+        <span className="write-tool-sep" />
+        <button
+          className="write-tool"
+          onClick={() => imageInputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? '업로드 중...' : '🖼 이미지'}
+        </button>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleImageUpload}
+        />
       </div>
 
       <div className="write-editor">

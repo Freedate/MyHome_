@@ -182,3 +182,13 @@
     border-right-color: var(--border);
   }
 }
+
+/* ── 이미지 리사이즈 ── */
+.write-editor-content .resize-cursor {
+  cursor: nwse-resize;
+}
+
+.write-editor-content img.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+  border-radius: 8px;
+}

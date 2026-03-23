@@ -1,10 +1,30 @@
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 import { ALL_PROJECTS } from './Portfolio'
 
 export default function ProjectDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const project = ALL_PROJECTS.find(p => p.id === id)
+
+  const [activeTab, setActiveTab] = useState('overview');
+  const [mainImage, setMainImage] = useState(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  useEffect(() => {
+    if (project?.images?.length > 0) {
+      setMainImage(project.images[0]);
+    }
+  }, [project]);
+
+  useEffect(() => {
+  const handleKey = (e) => {
+    if (e.key === 'Escape') setLightboxOpen(false)
+  }
+  if (lightboxOpen) window.addEventListener('keydown', handleKey)
+  return () => window.removeEventListener('keydown', handleKey)
+}, [lightboxOpen])
 
   if (!project) {
     return (
@@ -15,6 +35,7 @@ export default function ProjectDetail() {
     )
   }
 
+  const hasImages = project.images && project.images.length > 0;
   const categoryLabel = {
     desktop: 'Windows Desktop',
     web: 'Web',
@@ -37,6 +58,36 @@ export default function ProjectDetail() {
         </div>
         <span className="detail-badge">{categoryLabel[project.category]}</span>
       </div>
+
+       {/* ── 이미지 갤러리 ── */}
+      {hasImages && (
+        <div className="gallery">
+          {/* 메인 이미지 */}
+          <div
+            className="gallery-main"
+            onClick={() => setLightboxOpen(true)}
+            title="클릭하면 크게 볼 수 있어요"
+          >
+            <img src={mainImage} alt="메인 스크린샷" />
+            <div className="gallery-zoom-hint">🔍</div>
+          </div>
+
+          {/* 썸네일 스트립 */}
+          {project.images.length > 1 && (
+            <div className="gallery-thumbs">
+              {project.images.map((img, i) => (
+                <button
+                  key={i}
+                  className={`thumb ${img === mainImage ? 'active' : ''}`}
+                  onClick={() => setMainImage(img)}
+                >
+                  <img src={img} alt={`스크린샷 ${i + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="detail-body">
         <div className="detail-main">
@@ -91,16 +142,33 @@ export default function ProjectDetail() {
             </div>
           </div>
 
-          <div className="detail-section">
-            <h2 className="detail-section-label">이미지</h2>
-            <div className="detail-img-placeholder">
-              // 스크린샷 추후 추가
-            </div>
-          </div>
-
         </div>
       </div>
-
+{/* ── 라이트박스 ── */}
+      {lightboxOpen && createPortal(
+  <div className="lightbox" onClick={() => setLightboxOpen(false)}>
+    <button className="lightbox-close" onClick={() => setLightboxOpen(false)}>✕</button>
+    <img
+      src={mainImage}
+      alt="확대 이미지"
+      onClick={e => e.stopPropagation()}
+    />
+    {project.images.length > 1 && (
+      <div className="lightbox-nav" onClick={e => e.stopPropagation()}>
+        {project.images.map((img, i) => (
+          <button
+            key={i}
+            className={`thumb ${img === mainImage ? 'active' : ''}`}
+            onClick={() => setMainImage(img)}
+          >
+            <img src={img} alt={`썸네일 ${i + 1}`} />
+          </button>
+        ))}
+      </div>
+    )}
+  </div>,
+  document.body  // ← 핵심: body에 직접 붙임
+)}
     </section>
   )
 }

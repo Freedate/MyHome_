@@ -24,6 +24,11 @@ export const ALL_PROJECTS = [
       'Qt 커스텀 위젯으로 실시간 그래프 시각화',
     ],
     contribution: { percent: 70, text: '팀 4인 중 통신 모듈 및 UI 단독 담당' },
+    images: [
+    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774263617/kmoilibdlpyh2uz5g9gt.png',
+    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774263146/cld-sample-5.jpg',
+    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774263145/samples/waves.png',
+  ],
   },
   {
     id: 'remote-diagnosis',
@@ -45,6 +50,11 @@ export const ALL_PROJECTS = [
       '연결 끊김 시 자동 재연결 로직 구현',
     ],
     contribution: { percent: 60, text: '팀 3인 중 통신 레이어 및 UI 담당' },
+    images: [
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
+  ],
   },
   {
     id: 'erp-client',
@@ -67,6 +77,11 @@ export const ALL_PROJECTS = [
       '코드 커버리지 0%에서 40%로 향상',
     ],
     contribution: { percent: 50, text: '팀 5인 중 생산관리 모듈 담당' },
+    images: [
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
+  ],
   },
   {
     id: 'facility-diagnosis',
@@ -88,6 +103,11 @@ export const ALL_PROJECTS = [
       '실시간 파형 그래프 렌더링 구현',
     ],
     contribution: { percent: 80, text: '2인 팀, 통신 및 시각화 모듈 주도 개발' },
+    images: [
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
+  ],
   },
   {
     id: 'sentiment-api',
@@ -111,6 +131,11 @@ export const ALL_PROJECTS = [
       'Railway를 통한 무중단 배포',
     ],
     contribution: { percent: 100, text: '1인 단독 개발' },
+    images: [
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
+  ],
     url: null,
   },
   {
@@ -135,6 +160,11 @@ export const ALL_PROJECTS = [
       '웹 프로젝트 인앱 iframe 실행',
     ],
     contribution: { percent: 100, text: '1인 단독 개발' },
+    images: [
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
+    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
+  ],
     url: null,
   },
 ]
