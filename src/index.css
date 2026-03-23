@@ -1083,7 +1083,6 @@ a { color: inherit; text-decoration: none; }
   line-height: 1;
 }
 
-.dashboard-section { }
 
 .dashboard-section-label {
   font-family: var(--font-mono);
