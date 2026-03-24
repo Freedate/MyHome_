@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 
 export default function Blog() {
-  const [posts, setPosts]           = useState([])
+  const [posts, setPosts] = useState([])
   const [categories, setCategories] = useState([])
   const [activeCategory, setActiveCategory] = useState('전체')
-  const [loading, setLoading]       = useState(true)
-  const [error, setError]           = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function Blog() {
     : posts.filter(p => p.category === activeCategory)
 
   if (loading) return <section className="page"><p className="blog-status">불러오는 중...</p></section>
-  if (error)   return <section className="page"><p className="blog-status">오류: {error}</p></section>
+  if (error) return <section className="page"><p className="blog-status">오류: {error}</p></section>
 
   return (
     <section className="page blog-page">
@@ -69,7 +69,26 @@ export default function Blog() {
 
       {filtered.length === 0 ? (
         <div className="blog-empty">
-          <p>아직 작성된 글이 없습니다.</p>
+          {posts.length === 0 ? (
+            // 케이스 1: DB에 글이 아예 없음
+            <>
+              <span className="blog-empty-icon">✏️</span>
+              <p className="blog-empty-title">아직 작성된 글이 없습니다.</p>
+              <p className="blog-empty-sub">첫 번째 글을 기다리고 있어요.</p>
+            </>
+          ) : (
+            // 케이스 2: 해당 카테고리에 글이 없음
+            <>
+              <span className="blog-empty-icon">🔍</span>
+              <p className="blog-empty-title">'{activeCategory}' 카테고리에 글이 없습니다.</p>
+              <button
+                className="blog-empty-reset"
+                onClick={() => setActiveCategory('전체')}
+              >
+                전체 글 보기
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="blog-list">

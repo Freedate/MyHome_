@@ -1515,3 +1515,44 @@ a { color: inherit; text-decoration: none; }
   overflow-x: auto;
   max-width: 90vw;
 }
+
+.blog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 5rem 0;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.blog-empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.blog-empty-title {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.blog-empty-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.blog-empty-reset {
+  margin-top: 0.5rem;
+  padding: 0.4rem 1.2rem;
+  border: 1px solid var(--text-muted);
+  border-radius: 20px;
+  background: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.blog-empty-reset:hover {
+  border-color: var(--accent);
+}
