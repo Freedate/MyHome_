@@ -11,9 +11,10 @@ import Admin from './pages/Admin'
 import Write from './pages/Write'
 import Edit from './pages/Edit'
 
-function PageTracker() {
+function AnimatedRoutes() {
   const location = useLocation()
 
+  // GA 페이지 추적 (기존 PageTracker 흡수)
   useEffect(() => {
     if (window.gtag) {
       window.gtag('config', import.meta.env.VITE_GA_ID, {
@@ -22,27 +23,28 @@ function PageTracker() {
     }
   }, [location])
 
-  return null
+  return (
+    <Routes location={location} key={location.pathname}>
+      <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/portfolio" element={<Portfolio />} />
+      <Route path="/portfolio/:id" element={<ProjectDetail />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/blog/:id" element={<BlogDetail />} />
+      <Route path="/admin" element={<Admin />} />
+      <Route path="/admin/write" element={<Write />} />
+      <Route path="/admin/edit/:id" element={<Edit />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
 }
 
 export default function App() {
   return (
     <>
-      <PageTracker />
       <Navbar />
       <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/portfolio/:id" element={<ProjectDetail />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogDetail />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/write" element={<Write />} />
-          <Route path="/admin/edit/:id" element={<Edit />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <AnimatedRoutes />
       </main>
     </>
   )
