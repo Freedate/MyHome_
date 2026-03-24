@@ -10,6 +10,8 @@ import ProjectDetail from './pages/ProjectDetail'
 import Admin from './pages/Admin'
 import Write from './pages/Write'
 import Edit from './pages/Edit'
+import NotFound from './pages/NotFound'
+import ScrollToTop from './components/ScrollToTop'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -34,7 +36,7 @@ function AnimatedRoutes() {
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin/write" element={<Write />} />
       <Route path="/admin/edit/:id" element={<Edit />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />  // Navigate 제거
     </Routes>
   )
 }
@@ -46,6 +48,7 @@ export default function App() {
       <main>
         <AnimatedRoutes />
       </main>
+      <ScrollToTop />  {/* ← 추가 */}
     </>
   )
 }
