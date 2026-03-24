@@ -20,11 +20,24 @@ export default function ProjectDetail() {
 
   useEffect(() => {
   const handleKey = (e) => {
-    if (e.key === 'Escape') setLightboxOpen(false)
+    if (!lightboxOpen) return
+
+    if (e.key === 'Escape') {
+      setLightboxOpen(false)
+    } else if (e.key === 'ArrowRight') {
+      const currentIndex = project.images.indexOf(mainImage)
+      const nextIndex = (currentIndex + 1) % project.images.length
+      setMainImage(project.images[nextIndex])
+    } else if (e.key === 'ArrowLeft') {
+      const currentIndex = project.images.indexOf(mainImage)
+      const prevIndex = (currentIndex - 1 + project.images.length) % project.images.length
+      setMainImage(project.images[prevIndex])
+    }
   }
-  if (lightboxOpen) window.addEventListener('keydown', handleKey)
+
+  window.addEventListener('keydown', handleKey)
   return () => window.removeEventListener('keydown', handleKey)
-}, [lightboxOpen])
+}, [lightboxOpen, mainImage, project])
 
   if (!project) {
     return (
@@ -166,6 +179,11 @@ export default function ProjectDetail() {
         ))}
       </div>
     )}
+    {project.images.length > 1 && (
+  <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+    ← → 키로 이동 · ESC 닫기
+  </p>
+)}
   </div>,
   document.body  // ← 핵심: body에 직접 붙임
 )}
