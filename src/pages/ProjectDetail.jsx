@@ -106,8 +106,18 @@ export default function ProjectDetail() {
         <div className="detail-main">
 
           <div className="detail-section">
-            <h2 className="detail-section-label">Overview</h2>
+            <h2 className="detail-section-label">요약</h2>
             <p className="detail-text">{project.overview}</p>
+          </div>
+
+          <div className="detail-section">
+            <h2 className="detail-section-label">개요</h2>
+            {project.desc.map((desc, i) => (
+              <div key={i} className="detail-list-item">
+                <span className="detail-dot">·</span>
+                <span>{desc}</span>
+              </div>
+            ))}
           </div>
 
           <div className="detail-section">
@@ -126,6 +136,16 @@ export default function ProjectDetail() {
               <div key={i} className="detail-list-item">
                 <span className="detail-dot">·</span>
                 <span>{feature}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="detail-section">
+            <h2 className="detail-section-label">회고</h2>
+            {project.review.map((review, i) => (
+              <div key={i} className="detail-list-item">
+                <span className="detail-dot">·</span>
+                <span>{review}</span>
               </div>
             ))}
           </div>

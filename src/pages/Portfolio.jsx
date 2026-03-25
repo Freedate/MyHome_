@@ -3,140 +3,155 @@ import { useNavigate } from 'react-router-dom'
 
 export const ALL_PROJECTS = [
   {
-    id: 'industrial-control',
+    id: 'wts',
     icon: '🖥️',
     category: 'desktop',
-    title: '산업용 제어 소프트웨어',
-    company: '(주) 현재회사',
-    period: '2021.03 – 2023.08',
+    title: 'WTS',
+    company: 'ONJ',
+    period: '2025.12 – 2026.01',
     duration: '약 2년 6개월',
-    tech: ['C++17', 'Qt 6', 'Modbus TCP', 'SQLite', 'CMake'],
-    overview: 'CNC 장비 실시간 모니터링 및 제어 소프트웨어. 기존 단일 스레드 구조를 멀티스레드 아키텍처로 리팩토링하여 처리 성능을 40% 향상시켰으며, Modbus TCP 기반 통신 레이어를 새롭게 설계했습니다.',
+    tech: ['C++', 'Qt', 'Modbus TCP', 'SQLite', 'CMake'],
+    overview: '실시간 카메라 및 AI 기반 용접 교육 솔루션',
+    desc:[
+      '현재 작성중'
+    ],
     roles: [
-      '실시간 데이터 수집 모듈 설계 및 구현',
-      'Modbus TCP 통신 레이어 개발',
-      '멀티스레드 아키텍처 리팩토링',
-      'SQLite 기반 로컬 데이터 저장 설계',
+      
     ],
     features: [
-      '기존 폴링 방식을 이벤트 드리븐으로 전환, CPU 사용률 30% 절감',
-      '장비 이상 감지 시 자동 알림 및 로그 기록 시스템 구현',
-      'Qt 커스텀 위젯으로 실시간 그래프 시각화',
+     
     ],
-    contribution: { percent: 70, text: '팀 4인 중 통신 모듈 및 UI 단독 담당' },
+    review:[
+
+    ],
+    contribution: { percent: 50, text: '데스크탑용 메인 애플리케이션 및 Ubuntu 카메라서버 개발' },
     images: [
-    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774263617/kmoilibdlpyh2uz5g9gt.png',
-    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774263146/cld-sample-5.jpg',
-    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774263145/samples/waves.png',
+    
   ],
   },
   {
-    id: 'remote-diagnosis',
-    icon: '🔧',
-    category: 'desktop',
-    title: '설비 원격 진단 모듈',
-    company: '(주) 현재회사',
-    period: '2020.05 – 2021.02',
-    duration: '약 10개월',
-    tech: ['C++', 'Qt', 'TCP/IP', 'JSON'],
-    overview: '네트워크 기반 원격 진단 기능 추가 프로젝트. 현장 방문 없이 원격으로 설비 상태를 진단할 수 있는 모듈을 설계했습니다.',
-    roles: [
-      'TCP/IP 소켓 통신 기반 원격 연결 모듈 구현',
-      '진단 데이터 JSON 직렬화/역직렬화 처리',
-      '원격 진단 UI 컴포넌트 개발',
-    ],
-    features: [
-      '암호화 통신으로 보안 강화',
-      '연결 끊김 시 자동 재연결 로직 구현',
-    ],
-    contribution: { percent: 60, text: '팀 3인 중 통신 레이어 및 UI 담당' },
-    images: [
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
-  ],
-  },
-  {
-    id: 'erp-client',
+    id: 'mci',
     icon: '📊',
     category: 'desktop',
-    title: 'ERP 클라이언트 모듈',
-    company: '(주) 이전회사',
-    period: '2018.03 – 2020.04',
-    duration: '약 2년 1개월',
-    tech: ['C++', 'MFC', 'MS-SQL', 'ADO'],
-    overview: 'Windows MFC 기반 ERP 시스템의 생산관리 모듈 개발 및 레거시 코드 리팩토링. 노후화된 코드베이스를 현대화하고 단위 테스트 체계를 도입했습니다.',
+    title: 'MCI',
+    company: 'CJ 4DPLEX',
+    period: '2021.04 – 2023.03',
+    duration: '약 2년',
+    tech: ['C++', 'Qt', 'FFMpeg', 'Opencv', 'C#'],
+    overview: '영상 분석 및 자동 4DX 모션코드 생성 프로그램',
+    desc:[
+      '4DX용 모션코드 제작 효율화를 위해 통합 소프트웨어과 자동제작 프로그램인 MCI 두 파트로 나누어 개발을 시작',
+      'MCI의 단독 애플리케이션이 완성된 후 통합 소프트웨어 프레임에 모듈 형태로 통합하여 사용할 수 있도록 모듈화 개발',
+      'MCI 단독 애플리케이션의 UI 및 데이터전처리 기능 개발, 이후 C# 라이브러리화 개발 진행'
+    ],
     roles: [
-      '생산관리 모듈 신규 기능 개발',
-      '레거시 MFC 코드 리팩토링',
-      'MS-SQL 쿼리 최적화',
-      '단위 테스트 도입 및 작성',
+      'C++을 기반으로 Qt5 Qml을 이용해 단독 애플리케이션 UI를 개발',
+      '프로그램 전체 UX 및 UI 기획',
+      '프로그램 내 미니 동영상 플레이어 기능 개발',
+      '기존 사용하던 모션코드 제작 프로그램과 연결 가능한 TCP 통신 기능 개발',
+      'FFMpeg 라이브러리를 이용한 동영상 데이터 전처리 기능 개발',
+      '프레임 단위로 대표 픽셀들의 벡터 정보를 취합하여 메인 벡터를 추출 기능',
+      '메인 벡터의 흐름을 값으로 변환하고 6축 움직임 중 대응되는 값으로 6축 변화량 데이터로 변환 후 그래프 출력 기능 개발',
+      '축 별 그래프마다 적용 가능한 선형 필터 개발',
+      'AI 개발을 맡은 동료들이 직접 이용할 수 있도록 각 필터마다 버튼 UI 및 히스토리, 실행취소 기능 등을 개발',
+      '해당 애플리케이션 기능들을 C# 소스코드로 변환 및 라이브러리화 빌드',
+      '통합 소프트웨어 적용 시 나타날 UX/UI 구성 기획 및 개발'
     ],
     features: [
-      '쿼리 최적화로 조회 속도 50% 개선',
-      '코드 커버리지 0%에서 40%로 향상',
+      '학습모델을 수정해가며 사용할 수 있도록 모델 Import 기능을 포함해 개발'
     ],
-    contribution: { percent: 50, text: '팀 5인 중 생산관리 모듈 담당' },
+    review:[
+      '이전 PROST 프로젝트때 공부했던 FFMpeg와 동영상 컨테이너와 코덱에 대해서 조금 더 공부할 수 있었으며, 해당 내용을 토대로 벡터를 추출하고 유의미한 데이터를 추출해낼 수 있었음',
+    '그래프 처리와 선형 필터를 개발하는 단계에서 수학적인 계산이 많이 들어갔기 때문에 학부시절 배웠던 선형대수 과목을 다시 복습하는 계기가 되었음',
+    '해당 프로젝트를 계기로 AI 엔지니어에 관심을 가지게 되었으며, 특히 컴퓨터 비전 분야 AI 엔지니어로 성장하기를 희망해 프로젝트 기초 기능 개발 마무리 단계 이후 퇴사'
+    ],
+    contribution: { percent: 100, text: 'Windows용 애플리케이션 개발 및 라이브러리 빌드' },
     images: [
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
+    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774441321/image_port3_01_yq59cg.png'
   ],
   },
   {
-    id: 'facility-diagnosis',
+    id: 'plax',
     icon: '🔍',
     category: 'desktop',
-    title: '설비 진단 유틸리티',
-    company: '(주) 이전회사',
-    period: '2016.06 – 2017.12',
-    duration: '약 1년 6개월',
-    tech: ['C++', 'Win32 API', 'GDI+', 'Serial Communication'],
-    overview: '공장 설비의 이상 진단 및 로그 분석 도구. RS-232/485 시리얼 통신을 구현하여 설비 데이터를 수집하고 시각화합니다.',
+    title: 'PLAX',
+    company: 'CJ 4DPLEX',
+    period: '2020.05 – 2021.03',
+    duration: '약 11개월',
+    tech: ['Unity3D', 'C#', 'Azure Kinect SDK'],
+    overview: '모션 인식 아동 교육용 게임 솔루션',
+    desc:[
+      'Covid-19 판데믹사태로 인해 회사 신사업 발굴 중 추진된 프로젝트',
+      '영어 교육서비스 기업 ‘청담러닝’의 신규 캐릭터 IP를 활용하여 키즈카페 또는 백화점 등의 유휴공간에 입점을 목표로 개발',
+      'Microsoft Azure Kinect를 이용해 RGB카메라와 Depth센서, Motion Tracking 등의 SDK를 활용한 영어 교육용 게임 플랫폼과 8종의 미니게임 콘텐츠를 개발'
+    ],
     roles: [
-      'RS-232/485 시리얼 통신 구현',
-      'GDI+를 활용한 데이터 시각화',
-      '로그 파일 파싱 및 분석 기능 개발',
+      'Unity3D 환경에서 개발',
+      '주어진 요구 학습내용에 맞게 게임 콘텐츠 총 12종 기획에 참여',
+      'Azure Kinect SDK를 이용해 동작 인식 및 스크린 터치 캘리브레이션, 터치 인식 모듈 개발',
+    '해당 모듈을 통해 개발한 콘텐츠를 실행할 수 있는 플랫폼 및 전용 프레임워크 개발',
+    '기획된 12종 중 4개의 게임 콘텐츠 개발',
+    '개발 과정에서 필요한 3D 쉐이더 코드 일부 작성'
     ],
     features: [
-      '다양한 설비 프로토콜 지원을 위한 플러그인 구조 설계',
-      '실시간 파형 그래프 렌더링 구현',
+      '4~6세 아동을 위한 게임 콘텐츠',
+      '유니티 툴을 사용해 본 경험이 본인밖에 없었기 때문에 강의 형태의 세미나와 병행하면서 프로젝트 진행',
+      '최종적으로 해당 IP를 이용한 영화 콘텐츠가 실패하며 프로젝트 drop'
     ],
-    contribution: { percent: 80, text: '2인 팀, 통신 및 시각화 모듈 주도 개발' },
+    review:[
+      '학부시절 스타트업으로 게임을 만들었던 경험을 계기로 Unity 툴을 오랜만에 접해보는 계기가 되었으며, 당시와 비교했을때 해당 프로젝트를 개발하면서 이전 프로젝트 당시 설계 구조 등에서 아쉬웠던 점들이 떠올랐고, 나 자신이 성장했다는 자부심을 가질 수 있었음',
+      '신사업으로 시도했던 내용이기 때문에 회사 내에 비슷한 프로젝트를 경험해 본 동료가 없었고, 때문에 기획과 리소스 확보 등에서 아이디어가 많이 반영될 수 있었으며, 덕분에 처음으로 Kinect 센서 SDK를 접해볼 수 있었음',
+      'Kinect SDK를 이용해 개발하는 과정에서 많은 연구와 시행착오가 필요했고, 한글 자료가 많지 않았기 때문에 영어공부의 필요성을 깨닫는 계기가 되었음'
+    ],
+    contribution: { percent: 45, text: '메인 플랫폼과 프레임워크 개발, 콘텐츠개발' },
     images: [
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
+    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774441160/image_port2_01_cdhkol.png'
   ],
   },
   {
-    id: 'sentiment-api',
-    icon: '🧠',
-    category: 'web',
-    title: '한국어 감정분석 API 데모',
-    company: '개인 프로젝트',
-    period: '2025.01',
-    duration: '약 1개월',
-    tech: ['React', 'FastAPI', 'Python', 'Claude API'],
-    overview: '텍스트의 감정(긍정/부정/중립)을 분석하는 API 서비스 데모. FastAPI 백엔드와 Claude API를 연동하여 API Key 인증, 사용량 추적 기능을 구현했습니다.',
+    id: 'prost',
+    icon: '🎞️',
+    category: 'desktop',
+    title: 'PROST',
+    company: 'CJ 4DPLEX',
+    period: '2019.04 - 2020.03',
+    duration: '약 1년',
+    tech: ['C++', 'Qt', 'OpenCV', 'FFmpeg'],
+    overview: '멀티 스크린 영상 편집 및 상영 솔루션',
+    desc:[
+      'ScreenX 상영 기술 내재화 프로젝트로 시작, 범용 상영 SW로 변경하여 개발 진행',
+      '미디어 아트 전시, 공연장, CGV ScreenX 상영관 등 대형 공간에 여러대의 프로젝터를 이용해 다양한 형태의 평면 또는 다면에 한개 이상의 영상을 동시 재생하는 솔루션',
+      '영상 편집 및 상영 제어 툴 "Player", 다면 스크린 캘리브레이션 툴 "Calibrator" 툴의 두 가지 파트로 나누어 개발 하였으며, 이 중 "Player의 설계, 개발, QA 등 전 과정을 진행"',
+      'Player는 영상을 재생하는 "Decoder"와 영상 제어 UI인 "Player", 원격으로 영상을 제어하는 "Commander"의 세 개의 파트로 나누어 개발'
+    ],
     roles: [
-      'FastAPI 기반 REST API 서버 구현',
-      'Claude API 연동 및 프롬프트 설계',
-      'API Key 인증 미들웨어 개발',
-      'React 데모 페이지 제작',
+      '**Player**',
+      'Qt5 Quick, Qml 을 이용해 Visual Studio 환경에서 개발, OpenCV 라이브러리 일부 기능 사용',
+      '프로젝터 개수 및 해상도 설정',
+      '다수의 영상 입력 후 영상 출력 형태, 위치 및 해상도 설정 : 영상을 축소, 확대 혹은 스크린의 특정 위치에만 출력',
+      'Commander를 이용해 Decoder를 원격 실행 및 제어하고, 영상 재생 중 Decoder 종료상태를 파악해 재실행 후 영상 싱크 조절',
+      '영상 플레이 리스트 작성 및 저장, 영상 제어 TCP를 통해 메시지 큐 사전 스케쥴링 기능',
+      '**Decoder**',
+      'C++과 FFMpeg 라이브러리를 사용해 개발',
+      'Commander를 통한 미디어 입력, 재생, 일시정지, 정지, 볼륨제어 등 영상 재생 기능을 TCP 통신을 통해 입력받아 실행',
+      '0.5초마다 현재 미디어 Timestamp를 Commander로 전달해 여러 Decoder 간 싱크 조절',
+      '사전에 Player를 통해 정의된 형태대로 동영상파일을 재생'
     ],
     features: [
-      'API Key 기반 인증 및 사용량 추적',
-      'Swagger UI 자동 생성 문서화',
-      'Railway를 통한 무중단 배포',
+      '최대 8개의 프로젝터를 통한 영상 재생을 제어',
+      '영상 소스는 1개에서 최대 4개까지 동시 제어',
+      '제어 PC에 플레이어만 실행하고 로컬 IP를 통해 원격 PC의 Commander를 실행하여 영상 재생을 제어',
+      '메시지 큐를 통해 영상제어 뿐 아니라 TCP 통신을 지원하는 모든 미디어 장비의 제어 스케쥴링 기능 제공'
     ],
-    contribution: { percent: 100, text: '1인 단독 개발' },
+    review:[
+      '동영상 포맷에 대한 이해가 전무했었으나, 해당 프로젝트를 통해 FFMpeg 라이브러리와 동영상 압축 형식, 포맷과 코덱에 대해 공부할 수 있었음',
+      '입사 후 첫 프로젝트였음에도 불구하고 기획부터 모든 단계를 혼자 진행했기 때문에 개발 프로세스를 전부 경험할 수 있었음',
+      '해당 프로젝트를 성공적으로 마무리한 것을 계기로 신입으로써 잘 할수 있을까에 대한 불안감이 뭐든 할수 있다는 자신감을 가지고 이후 업무에 임할 수 있었음'
+    ],
+    contribution: { percent: 100, text: 'Player 파트 기획, 설계 및 개발' },
     images: [
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img1.png',
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img2.png',
-    //'https://res.cloudinary.com/YOUR_CLOUD/image/upload/v.../img3.png',
+    'https://res.cloudinary.com/dk7xtyi1r/image/upload/v1774437787/Image_port1_01_ctlqln.png'
   ],
-    url: null,
   },
   {
     id: 'portfolio-site',
@@ -170,12 +185,12 @@ export const ALL_PROJECTS = [
 ]
 
 const COMPANIES = [
-  { name: '(주) 현재회사',  period: '2020 – 현재' },
-  { name: '(주) 이전회사',  period: '2015 – 2020' },
+  { name: 'ONJ',  period: '2025.12 – 2026.01' },
+  { name: 'CJ 4DPLEX',  period: '2019.01 – 2023.03' },
 ]
 
 const TABS = [
-  { id: 'desktop', label: 'Windows Desktop' },
+  { id: 'desktop', label: 'Windows / Linux App' },
   { id: 'web',     label: 'Web' },
   { id: 'api',     label: 'API',  soon: true },
   { id: 'game',    label: 'Game', soon: true },
