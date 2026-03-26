@@ -486,7 +486,7 @@ a { color: inherit; text-decoration: none; }
 .pf-card-top {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 .pf-card-icon { font-size: 22px; line-height: 1; }
 .pf-card-badge {
@@ -498,6 +498,11 @@ a { color: inherit; text-decoration: none; }
 }
 .badge-desktop { color: var(--accent); border-color: rgba(126,180,244,0.3); background: var(--accent-dim); }
 .badge-web     { color: var(--accent); border-color: rgba(126,180,244,0.3); background: var(--accent-dim); }
+.badge-linux {
+  background: rgba(255, 150, 50, 0.12);
+  color: #f4a261;
+  border: 1px solid rgba(255, 150, 50, 0.25);
+}
 
 .pf-card-title { font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.3; }
 .pf-card-period { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
