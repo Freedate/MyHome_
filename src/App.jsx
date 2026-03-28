@@ -12,6 +12,8 @@ import Write from './pages/Write'
 import Edit from './pages/Edit'
 import NotFound from './pages/NotFound'
 import ScrollToTop from './components/ScrollToTop'
+import Daily from './pages/Daily'
+import DailyDetail from './pages/DailyDetail'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -36,6 +38,8 @@ function AnimatedRoutes() {
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin/write" element={<Write />} />
       <Route path="/admin/edit/:id" element={<Edit />} />
+      <Route path="/daily" element={<Daily />} />
+      <Route path="/daily/:id" element={<DailyDetail />} />
       <Route path="*" element={<NotFound />} />  // Navigate 제거
     </Routes>
   )

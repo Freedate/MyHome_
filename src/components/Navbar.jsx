@@ -10,6 +10,7 @@ export default function Navbar() {
           <li><NavLink to="/about">About</NavLink></li>
           <li><NavLink to="/portfolio">Portfolio</NavLink></li>
           <li><NavLink to="/blog">Blog</NavLink></li>
+          <li><NavLink to="/daily">Daily</NavLink></li>
         </ul>
       </div>
     </nav>
