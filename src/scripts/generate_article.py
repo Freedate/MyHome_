@@ -28,7 +28,7 @@ def generate_article():
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
     message = client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-opus-4-5",
         max_tokens=3000,
         tools=[
             {
