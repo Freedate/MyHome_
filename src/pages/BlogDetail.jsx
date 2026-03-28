@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
+import { Helmet } from 'react-helmet-async'
 
 export default function BlogDetail() {
   const { id } = useParams()
@@ -35,6 +36,14 @@ export default function BlogDetail() {
   if (error || !post) return <section className="page"><p className="blog-status">글을 찾을 수 없습니다.</p></section>
 
   return (
+    <>
+    <Helmet>
+      <title>{post.title} — Horidong's Blog</title>
+      <meta name="description" content={post.content?.replace(/<[^>]*>/g, '').slice(0, 120)} />
+      <meta property="og:title" content={post.title} />
+      <meta property="og:description" content={post.content?.replace(/<[^>]*>/g, '').slice(0, 120)} />
+      <meta property="og:type" content="article" />
+    </Helmet>
     <section className="page blog-detail-page">
       <button className="detail-back" onClick={() => navigate('/blog')}>
         ← Blog로 돌아가기
@@ -60,5 +69,6 @@ export default function BlogDetail() {
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
     </section>
+    </>
   )
 }
