@@ -112,7 +112,7 @@ export default function ProjectDetail() {
 
           <div className="detail-section">
             <h2 className="detail-section-label">개요</h2>
-            {project.desc.map((desc, i) => (
+            {project.desc?.map((desc, i) => (
               <div key={i} className="detail-list-item">
                 <span className="detail-dot">·</span>
                 <span>{desc}</span>

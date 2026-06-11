@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>♞ 나이트 던전</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  background:#16121d;
+  background-image:radial-gradient(ellipse at 50% 30%, #241b33 0%, #16121d 70%);
+  color:#e8e2f2;
+  font-family:'Segoe UI','Malgun Gothic',sans-serif;
+  position:relative;
+  user-select:none;
+}
+#app{
+  position:absolute;left:50%;top:0;
+  transform:translateX(-50%);transform-origin:top center;
+  display:flex;flex-direction:column;gap:6px;padding:6px;
+}
+#topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  background:#241d31;border:2px solid #4a3f63;border-radius:8px;
+  padding:4px 12px;font-size:15px;
+}
+#hearts{font-size:20px;letter-spacing:2px;color:#ff5b6a;min-width:110px}
+#hearts .dim{color:#4a3a52}
+#roomName{font-weight:700;color:#ffd75e;font-size:17px}
+#topRight{display:flex;align-items:center;gap:8px;min-width:110px;justify-content:flex-end}
+#inv{font-size:18px;min-width:24px;text-align:right}
+.hbtn{
+  position:relative;font-size:12px;padding:3px 8px;border-radius:6px;
+  border:1px solid #4a3f63;background:#1a1424;color:#b8aecb;cursor:help;
+  white-space:nowrap;
+}
+.hbtn:hover{background:#3a2f52;color:#fff}
+.hbtn .popup{
+  display:none;position:absolute;top:calc(100% + 8px);right:-8px;width:248px;
+  background:#241d31fa;border:2px solid #6a5a8e;border-radius:10px;
+  padding:10px 14px;z-index:55;font-size:13px;text-align:left;
+  box-shadow:0 10px 28px #000c;cursor:default;line-height:1.8;color:#cfc6e0;
+}
+.hbtn:hover .popup{display:block}
+.hbtn .popup b{color:#e8e2f2}
+
+/* ── 보드 ── */
+#boardWrap{
+  position:relative;width:492px;height:492px;
+  border:6px solid #5a4a78;border-radius:8px;
+  box-shadow:0 0 36px #000c, inset 0 0 24px #0009;
+  overflow:hidden;background:#000;
+}
+#board{
+  position:relative;width:480px;height:480px;
+  transition:opacity .28s ease, transform .28s ease;
+}
+#board.fade-out{opacity:0;transform:scale(.94)}
+/* 방별 바닥 색 */
+#board.t-start {--light:#96a07c;--dark:#525e3d}
+#board.t-combat{--light:#8c99b0;--dark:#45526b}
+#board.t-puzzle{--light:#b3a06f;--dark:#6b5c33}
+#board.t-item  {--light:#7fb3a0;--dark:#3c6b58}
+#board.t-trap  {--light:#b08a78;--dark:#6b4137}
+#board.t-boss  {--light:#a87884;--dark:#5d2f3f}
+
+.cell{
+  position:absolute;width:60px;height:60px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+}
+.cell.light{background:var(--light,#999)}
+.cell.dark{background:var(--dark,#444)}
+
+/* 문 */
+.cell.door{background:repeating-linear-gradient(90deg,#3a3148 0 8px,#221b2e 8px 16px);font-size:24px}
+.cell.door.open{background:#0d0815;box-shadow:inset 0 0 20px #7fffd466}
+.cell.door.locked{font-size:26px}
+
+/* 함정 */
+.cell.trap{font-size:22px;color:#5e1d12;text-shadow:0 1px 0 #00000044;font-weight:700}
+
+/* 발판 */
+.cell.plate{font-size:19px;font-weight:800;color:#ffd75e;text-shadow:0 1px 2px #000}
+.cell.plate::before{
+  content:'';position:absolute;width:42px;height:42px;border-radius:50%;
+  border:3px solid #d9b84a;background:#0003;
+}
+.cell.plate.done{color:#3a2c00}
+.cell.plate.done::before{background:#ffd75ed8;box-shadow:0 0 16px #ffd75e}
+
+/* 위험 칸 (적 공격 범위) */
+.cell.danger{box-shadow:inset 0 0 0 60px rgba(255,40,40,.16)}
+.cell.danger::after2{}
+.cell.danger .dmark{position:absolute;top:3px;right:3px;width:0;height:0;
+  border:5px solid transparent;border-top-color:#ff4444;border-right-color:#ff4444}
+
+/* 이동 가능 칸 */
+.cell.hint{cursor:pointer}
+.cell.hint::after{
+  content:attr(data-i);
+  position:absolute;width:22px;height:22px;border-radius:50%;
+  background:rgba(70,230,130,.92);box-shadow:0 0 10px #4f8;
+  color:#063312;font-size:13px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.cell.hint.hint-cap::after{
+  width:46px;height:46px;background:rgba(70,230,130,.14);
+  border:3px solid rgba(80,240,140,.95);color:#bfffd4;
+}
+.cell.hint.kb{outline:3px solid #b8fff0;outline-offset:-3px;z-index:2}
+.cell.hint:hover{outline:3px solid #ffffffaa;outline-offset:-3px;z-index:2}
+
+/* ── 말 ── */
+#pieces{position:absolute;inset:0;pointer-events:none}
+.piece{
+  position:absolute;left:0;top:0;width:60px;height:60px;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s ease, opacity .3s ease;
+  z-index:5;pointer-events:none;
+}
+.piece .glyph{font-size:42px;line-height:1;font-family:'Segoe UI Symbol','Noto Sans Symbols',serif}
+.piece.die{opacity:0;filter:blur(3px)}
+.piece.player{z-index:7}
+.piece.player .glyph{
+  color:#ffd75e;
+  text-shadow:0 0 8px #000,0 2px 2px #000,0 0 18px #ffb70077;
+  animation:bob 1.6s ease-in-out infinite;
+}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.piece.enemy .glyph{
+  color:#1d1726;
+  text-shadow:0 0 2px #cfc6e0,0 0 7px #cfc6e0aa,0 2px 3px #000;
+}
+.piece.enemy.queen .glyph{font-size:50px}
+.piece.item{z-index:4}
+.piece.item .glyph{font-size:30px;animation:bob 1.6s ease-in-out infinite}
+.pips{position:absolute;top:1px;left:0;width:100%;text-align:center;
+  font-size:12px;color:#ff5b6a;letter-spacing:1px;text-shadow:0 1px 2px #000}
+
+/* 방 이름 배너 */
+#banner{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:40px;font-weight:800;color:#fff;
+  text-shadow:0 0 18px #000,0 0 40px #000;
+  opacity:0;pointer-events:none;transition:opacity .45s;z-index:20;
+}
+
+/* ── 미니맵 (보드 우상단 반투명 오버레이) ── */
+#minimap{
+  position:absolute;top:8px;right:8px;width:122px;height:134px;
+  background:#16121dcc;border:1px solid #6a5a8e99;border-radius:8px;
+  padding:6px;box-sizing:content-box;
+  transform:scale(.72);transform-origin:top right;
+  opacity:.45;transition:opacity .2s;z-index:15;
+  pointer-events:none; /* 클릭은 아래 보드로 통과 */
+}
+#minimap.peek{opacity:.12} /* 커서가 위에 오면 비켜준다 */
+#minimap .mm-room,#minimap .mm-link{margin:6px 0 0 6px}
+.mm-room{
+  position:absolute;width:32px;height:24px;border-radius:4px;
+  border:2px solid #4a3f63;background:#1a1424;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.mm-room.visited{background:#4a3f63}
+.mm-room.current{background:#ffd75e;border-color:#fff;color:#241d31;
+  box-shadow:0 0 10px #ffd75e;animation:mmpulse 1.2s ease-in-out infinite}
+@keyframes mmpulse{0%,100%{box-shadow:0 0 6px #ffd75e}50%{box-shadow:0 0 14px #ffd75e}}
+.mm-link{position:absolute;background:#4a3f63}
+#legend{list-style:none;line-height:1.8}
+#legend .sym{display:inline-block;width:24px;font-size:18px;text-align:center}
+#controls{line-height:1.7;color:#b8aecb}
+#controls b{color:#e8e2f2}
+
+/* ── 토스트 / 플래시 / 오버레이 ── */
+#toast{
+  position:fixed;left:50%;bottom:44px;transform:translateX(-50%);
+  background:#241d31f0;border:2px solid #6a5a8e;border-radius:10px;
+  padding:10px 24px;font-size:17px;opacity:0;transition:opacity .25s;
+  pointer-events:none;z-index:50;white-space:nowrap;
+}
+#flash{position:fixed;inset:0;background:#e22;opacity:0;pointer-events:none;
+  transition:opacity .35s;z-index:40}
+#overlay{
+  position:fixed;inset:0;background:rgba(10,6,16,.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;z-index:60;text-align:center;padding:20px;
+}
+#overlay.hidden{display:none}
+#overlay h1{font-size:46px;color:#ffd75e;text-shadow:0 0 24px #ffb70055}
+#overlay .desc{font-size:16px;line-height:2;color:#cfc6e0;max-width:460px}
+#overlay button{
+  font-size:20px;font-weight:700;padding:12px 40px;border-radius:10px;
+  border:2px solid #ffd75e;background:#3a2f1a;color:#ffd75e;cursor:pointer;
+  transition:all .15s;font-family:inherit;
+}
+#overlay button:hover{background:#ffd75e;color:#241d31;box-shadow:0 0 20px #ffd75e88}
+#overlay .btnrow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+#overlay button.alt{border-color:#8fd4b8;background:#1c3a2e;color:#8fd4b8}
+#overlay button.alt:hover{background:#8fd4b8;color:#1c3a2e;box-shadow:0 0 20px #8fd4b888}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div id="hearts"></div>
+    <div id="roomName"></div>
+    <div id="topRight">
+      <div class="hbtn">📖 도감
+        <div class="popup">
+          <ul id="legend">
+            <li><span class="sym">♟</span> <b>폰</b> — 한 칸씩 접근, 대각선 공격</li>
+            <li><span class="sym">♜</span> <b>룩</b> — 직선 공격 (<span id="lgR">4</span>칸)</li>
+            <li><span class="sym">♝</span> <b>비숍</b> — 대각선 공격 (<span id="lgB">4</span>칸)</li>
+            <li><span class="sym">♛</span> <b>여왕</b> — 보스, 체력 3, 전방향 <span id="lgQ">3</span>칸</li>
+            <li><span class="sym" style="color:#c0392b">▲</span> <b>함정</b> — 밟으면 피해</li>
+            <li><span class="sym" style="color:#ffd75e">①</span> <b>발판</b> — 순서대로 밟기</li>
+          </ul>
+        </div>
+      </div>
+      <div class="hbtn">🎮 조작법
+        <div class="popup" id="controls">
+          <b>클릭</b> 초록 점으로 이동<br>
+          <b>← →</b> 이동 칸 선택, <b>Enter</b> 확정<br>
+          <b>1~8</b> 숫자키 빠른 이동<br>
+          붉은 칸 = 적의 공격 범위!
+        </div>
+      </div>
+      <div id="inv"></div>
+    </div>
+  </div>
+  <div id="boardWrap">
+    <div id="board"></div>
+    <div id="minimap"></div>
+    <div id="banner"></div>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="flash"></div>
+<div id="overlay" class="hidden">
+  <h1 id="ovTitle"></h1>
+  <div class="desc" id="ovDesc"></div>
+  <div class="btnrow" id="ovBtns"></div>
+</div>
+
+<script>
+'use strict';
+/* ───────────────────── 상수 ───────────────────── */
+const N=8, CELL=60;
+const KM=[[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]];
+const DOOR_CELLS={N:[[3,0],[4,0]],S:[[3,7],[4,7]],W:[[0,3],[0,4]],E:[[7,3],[7,4]]};
+const OPP={N:'S',S:'N',W:'E',E:'W'};
+const SYM={pawn:'♟',rook:'♜',bishop:'♝',queen:'♛'};
+const ENAME={pawn:'폰',rook:'룩',bishop:'비숍',queen:'여왕'};
+
+function en(type,x,y,hp){return {type,x,y,hp:hp||1,el:null};}
+
+/* 던전 정의 — 새 게임마다 새로 생성 */
+function dungeonDef(){
+  return {
+    start:{ pos:[1,3], name:'시작의 방',
+      doors:{N:{to:'combat'}}, enemies:[], items:[], traps:[], plates:[] },
+    combat:{ pos:[1,2], name:'전투의 방', clearLock:true,
+      doors:{S:{to:'start'},N:{to:'puzzle'}},
+      enemies:[en('pawn',2,2),en('pawn',5,2),en('bishop',3,1)],
+      items:[], traps:[], plates:[] },
+    puzzle:{ pos:[1,1], name:'퍼즐의 방',
+      doors:{S:{to:'combat'},W:{to:'item',puzzle:true},E:{to:'trap',puzzle:true},N:{to:'boss',puzzle:true,needKey:true}},
+      enemies:[], items:[], traps:[],
+      plates:[{x:2,y:2,o:1,done:false},{x:5,y:2,o:2,done:false},{x:5,y:5,o:3,done:false},{x:2,y:5,o:4,done:false}],
+      plateNext:1, solved:false },
+    item:{ pos:[0,1], name:'보물의 방',
+      doors:{E:{to:'puzzle'}},
+      enemies:[], traps:[], plates:[],
+      items:[{x:3,y:2,type:'key',taken:false},{x:4,y:5,type:'heart',taken:false}] },
+    trap:{ pos:[2,1], name:'함정의 방', clearLock:true,
+      doors:{W:{to:'puzzle'}},
+      enemies:[en('rook',6,2),en('pawn',2,3),en('pawn',5,5)],
+      traps:[[2,2],[4,1],[6,3],[2,4],[5,4],[3,6],[6,6],[1,6]],
+      items:[{x:6,y:1,type:'heart',taken:false}], plates:[] },
+    boss:{ pos:[1,0], name:'보스의 방', clearLock:true,
+      doors:{S:{to:'puzzle'}},
+      enemies:[en('queen',2,1,3),en('pawn',1,3),en('pawn',6,3)],
+      items:[], traps:[], plates:[] },
+  };
+}
+
+/* ───────────────────── 상태 ───────────────────── */
+let state=null, R=null, busy=false, over=false;
+let hints=[], kbIdx=0, overlayVisible=false;
+let playerEl=null;
+
+const el=id=>document.getElementById(id);
+const boardEl=el('board');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ───────────────────── 보드 DOM ───────────────────── */
+const cells=[];
+for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+  const c=document.createElement('div');
+  c.className='cell';
+  c.style.left=x*CELL+'px'; c.style.top=y*CELL+'px';
+  boardEl.appendChild(c); cells.push(c);
+}
+const piecesEl=document.createElement('div');
+piecesEl.id='pieces'; boardEl.appendChild(piecesEl);
+
+/* ───────────────────── 헬퍼 ───────────────────── */
+function inB(x,y){return x>=0&&x<N&&y>=0&&y<N;}
+function enemyAt(x,y){return R.enemies.find(e=>e.hp>0&&e.x===x&&e.y===y)||null;}
+function trapAt(x,y){return R.traps.some(t=>t[0]===x&&t[1]===y);}
+function doorDirAt(room,x,y){
+  for(const dir in room.doors)
+    for(const c of DOOR_CELLS[dir]) if(c[0]===x&&c[1]===y) return dir;
+  return null;
+}
+function doorState(room,dir){
+  const d=room.doors[dir];
+  if(room.clearLock && room.enemies.some(e=>e.hp>0)) return 'closed';
+  if(d.puzzle && !room.solved) return 'closed';
+  if(d.needKey && !state.hasKey) return 'locked';
+  return 'open';
+}
+function canStand(x,y){
+  return inB(x,y)&&!enemyAt(x,y)&&!(x===state.px&&y===state.py)
+    &&!doorDirAt(R,x,y)&&!trapAt(x,y);
+}
+function rays(t){
+  const o=[[1,0],[-1,0],[0,1],[0,-1]], d=[[1,1],[1,-1],[-1,1],[-1,-1]];
+  return t==='rook'?o : t==='bishop'?d : o.concat(d);
+}
+/* 던전에서는 슬라이딩 기물의 사거리를 제한 (밸런스) */
+const DIFF={
+  normal:{label:'보통', hp:3, range:{rook:4,bishop:4,queen:3}},
+  easy:  {label:'쉬움', hp:5, range:{rook:3,bishop:3,queen:2}},
+};
+let difficulty='normal';
+let RANGE=DIFF.normal.range;
+
+/* ───────────────────── 사운드 (WebAudio) ───────────────────── */
+let AC=null;
+function tone(f,dur,type,vol,delay){
+  type=type||'square'; vol=vol===undefined?.07:vol; delay=delay||0;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    const t=AC.currentTime+delay;
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type=type; o.frequency.value=f;
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g); g.connect(AC.destination);
+    o.start(t); o.stop(t+dur+.03);
+  }catch(e){}
+}
+const sMove   =()=>tone(300,.07,'triangle',.05);
+const sCapture=()=>{tone(520,.08);tone(800,.12,'square',.05,.07);};
+const sHurt   =()=>tone(130,.28,'sawtooth',.09);
+const sDoor   =()=>{tone(392,.12,'triangle',.07);tone(523,.2,'triangle',.07,.12);};
+const sPick   =()=>{tone(660,.08,'triangle',.07);tone(990,.14,'triangle',.06,.08);};
+const sWrong  =()=>tone(170,.25,'sawtooth',.08);
+const sWin    =()=>{[523,659,784,1047,1319].forEach((f,i)=>tone(f,.22,'triangle',.08,i*.14));};
+
+/* ───────────────────── UI ───────────────────── */
+let toastT=null;
+function toast(msg){
+  const t=el('toast'); t.textContent=msg; t.style.opacity=1;
+  clearTimeout(toastT); toastT=setTimeout(()=>t.style.opacity=0,1800);
+}
+let bannerT=null;
+function banner(txt){
+  const b=el('banner'); b.textContent=txt; b.style.opacity=1;
+  clearTimeout(bannerT); bannerT=setTimeout(()=>b.style.opacity=0,1100);
+}
+function flashScreen(){
+  const f=el('flash');
+  f.style.transition='none'; f.style.opacity=.4;
+  requestAnimationFrame(()=>{f.style.transition='opacity .35s'; f.style.opacity=0;});
+}
+function showOverlay(title,desc,buttons){
+  overlayVisible=true;
+  el('ovTitle').textContent=title;
+  el('ovDesc').innerHTML=desc;
+  const row=el('ovBtns'); row.innerHTML='';
+  buttons.forEach((b,i)=>{
+    const btn=document.createElement('button');
+    btn.textContent=b[0];
+    if(i>0)btn.classList.add('alt');
+    btn.onclick=()=>{ hideOverlay(); b[1](); };
+    row.appendChild(btn);
+  });
+  el('overlay').classList.remove('hidden');
+}
+function hideOverlay(){ overlayVisible=false; el('overlay').classList.add('hidden'); }
+
+function updateUI(){
+  el('hearts').innerHTML=
+    '<span>'+'♥'.repeat(Math.max(0,state.hp))+'</span>'+
+    '<span class="dim">'+'♥'.repeat(state.maxHp-Math.max(0,state.hp))+'</span>';
+  el('roomName').textContent=R.name;
+  el('inv').textContent=state.hasKey?'🗝️':'';
+  updateMinimap();
+}
+
+/* ───────────────────── 미니맵 ───────────────────── */
+const MMX=44,MMY=36,MMW=32,MMH=24;
+function buildMinimap(){
+  const mm=el('minimap'); mm.innerHTML='';
+  for(const id in state.rooms){
+    const r=state.rooms[id];
+    for(const dir in r.doors){
+      const L=document.createElement('div'); L.className='mm-link';
+      if(dir==='N'){
+        L.style.left=(r.pos[0]*MMX+MMW/2-1)+'px';
+        L.style.top=((r.pos[1]-1)*MMY+MMH)+'px';
+        L.style.width='2px'; L.style.height=(MMY-MMH)+'px';
+      }else if(dir==='W'){
+        L.style.left=((r.pos[0]-1)*MMX+MMW)+'px';
+        L.style.top=(r.pos[1]*MMY+MMH/2-1)+'px';
+        L.style.width=(MMX-MMW)+'px'; L.style.height='2px';
+      }else continue;
+      mm.appendChild(L);
+    }
+  }
+  for(const id in state.rooms){
+    const r=state.rooms[id];
+    const d=document.createElement('div');
+    d.className='mm-room'; d.id='mm-'+id;
+    d.style.left=r.pos[0]*MMX+'px'; d.style.top=r.pos[1]*MMY+'px';
+    mm.appendChild(d);
+  }
+}
+function updateMinimap(){
+  for(const id in state.rooms){
+    const d=el('mm-'+id); if(!d)continue;
+    d.classList.toggle('visited',!!state.visited[id]&&id!==state.cur);
+    d.classList.toggle('current',id===state.cur);
+    d.textContent=id===state.cur?'♞':(id==='boss'&&state.visited[id]?'♛':'');
+  }
+}
+
+/* ───────────────────── 말 렌더링 ───────────────────── */
+function mkPiece(glyph,cls){
+  const d=document.createElement('div');
+  d.className='piece '+cls;
+  d.innerHTML='<span class="glyph">'+glyph+'</span>';
+  piecesEl.appendChild(d); return d;
+}
+function setPos(elm,x,y){ elm.style.transform='translate('+x*CELL+'px,'+y*CELL+'px)'; }
+function posPlayer(){ setPos(playerEl,state.px,state.py); }
+function posPiece(e){ if(e.el)setPos(e.el,e.x,e.y); }
+function updatePips(e){
+  const p=e.el&&e.el.querySelector('.pips');
+  if(p)p.textContent='♥'.repeat(e.hp);
+}
+function fadeOutPiece(elm){
+  if(!elm)return;
+  elm.classList.add('die');
+  setTimeout(()=>elm.remove(),350);
+}
+function spawnPieces(){
+  piecesEl.innerHTML='';
+  for(const it of R.items) if(!it.taken){
+    it.el=mkPiece(it.type==='key'?'🗝️':'❤️','item');
+    setPos(it.el,it.x,it.y);
+  }
+  for(const e of R.enemies) if(e.hp>0){
+    e.el=mkPiece(SYM[e.type],'enemy '+e.type);
+    if(e.type==='queen'){
+      const p=document.createElement('div'); p.className='pips';
+      e.el.appendChild(p); updatePips(e);
+    }
+    setPos(e.el,e.x,e.y);
+  }
+  playerEl=mkPiece('♞','player');
+  posPlayer();
+}
+
+/* ───────────────────── 칸 렌더링 ───────────────────── */
+function computeDanger(){
+  const s=new Set();
+  for(const e of R.enemies){
+    if(e.hp<=0)continue;
+    if(e.type==='pawn'){
+      for(const d of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+        const x=e.x+d[0],y=e.y+d[1];
+        if(inB(x,y))s.add(y*N+x);
+      }
+    }else{
+      for(const d of rays(e.type)){
+        let x=e.x+d[0],y=e.y+d[1],st=1;
+        while(inB(x,y)&&st<=RANGE[e.type]){
+          if(enemyAt(x,y))break;
+          s.add(y*N+x);
+          if(x===state.px&&y===state.py)break;
+          x+=d[0];y+=d[1];st++;
+        }
+      }
+    }
+  }
+  return s;
+}
+function refreshCells(){
+  const danger=computeDanger();
+  const hintMap={};
+  hints.forEach((h,i)=>hintMap[h.y*N+h.x]=i);
+  for(let i=0;i<64;i++){
+    const x=i%N, y=(i/N)|0, c=cells[i];
+    let cls='cell '+(((x+y)%2)?'dark':'light');
+    let txt='', dm=false;
+    const dir=doorDirAt(R,x,y);
+    if(dir){
+      const st=doorState(R,dir);
+      cls+=' door '+st;
+      if(st==='locked')txt='🔒';
+    }
+    if(trapAt(x,y)){cls+=' trap';txt='▲';}
+    const pl=R.plates.find(p=>p.x===x&&p.y===y);
+    if(pl){cls+=' plate'+(pl.done?' done':'');txt=pl.o;}
+    if(danger.has(i)){cls+=' danger';dm=true;}
+    if(hintMap[i]!==undefined){
+      cls+=' hint';
+      if(enemyAt(x,y))cls+=' hint-cap';
+      if(hintMap[i]===kbIdx)cls+=' kb';
+      c.dataset.i=hintMap[i]+1;
+    }
+    c.className=cls;
+    c.textContent=txt;
+    if(dm){const m=document.createElement('div');m.className='dmark';c.appendChild(m);}
+  }
+}
+
+/* ───────────────────── 플레이어 턴 ───────────────────── */
+function legalMoves(){
+  const res=[];
+  for(const m of KM){
+    const x=state.px+m[0], y=state.py+m[1];
+    if(!inB(x,y))continue;
+    const dir=doorDirAt(R,x,y);
+    if(dir&&doorState(R,dir)!=='open')continue;
+    res.push({x,y});
+  }
+  return res;
+}
+function playerTurnStart(){
+  if(over)return;
+  hints=legalMoves(); kbIdx=0;
+  refreshCells();
+  if(!hints.length){
+    toast('움직일 곳이 없다! 턴을 넘긴다…');
+    setTimeout(async()=>{
+      if(over)return;
+      busy=true;
+      if(R.enemies.some(e=>e.hp>0)) await enemyTurn();
+      busy=false;
+      if(!over)playerTurnStart();
+    },600);
+  }
+}
+
+async function doMove(h){
+  busy=true; hints=[]; refreshCells();
+  sMove();
+  state.px=h.x; state.py=h.y; posPlayer();
+  await sleep(230);
+
+  // 1) 적 처치
+  const enmy=enemyAt(h.x,h.y);
+  if(enmy)hitEnemy(enmy);
+
+  // 2) 문 통과
+  const dir=doorDirAt(R,h.x,h.y);
+  if(dir&&doorState(R,dir)==='open'){
+    await gotoRoom(dir,h.x,h.y);
+    busy=false; playerTurnStart(); return;
+  }
+
+  // 3) 함정
+  if(trapAt(h.x,h.y))damagePlayer('함정을 밟았다!');
+  if(over){busy=false;return;}
+
+  // 4) 발판 / 아이템
+  handlePlate();
+  handleItem();
+
+  // 5) 적 턴
+  if(R.enemies.some(e=>e.hp>0))await enemyTurn();
+  busy=false;
+  if(!over)playerTurnStart();
+}
+
+function hitEnemy(e){
+  sCapture();
+  if(e.type==='queen'&&e.hp>1){
+    e.hp--; updatePips(e);
+    // 여왕은 일격을 받으면 순간이동으로 도망친다
+    const spots=[];
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      if(enemyAt(x,y))continue;
+      if(x===state.px&&y===state.py)continue;
+      if(doorDirAt(R,x,y))continue;
+      if(trapAt(x,y))continue;
+      if(Math.abs(x-state.px)+Math.abs(y-state.py)<3)continue;
+      spots.push([x,y]);
+    }
+    if(spots.length){
+      const sp=spots[(Math.random()*spots.length)|0];
+      e.x=sp[0]; e.y=sp[1]; posPiece(e);
+    }
+    e.stunned=true; // 순간이동 직후 한 턴 기절 — 즉시 반격 방지
+    toast('여왕에게 일격! (남은 체력 '+e.hp+')');
+  }else{
+    e.hp=0; fadeOutPiece(e.el); e.el=null;
+    toast(ENAME[e.type]+' 처치!');
+    checkClear();
+  }
+}
+function checkClear(){
+  if(!R.clearLock||R.cleared)return;
+  if(R.enemies.some(e=>e.hp>0))return;
+  R.cleared=true;
+  if(state.cur==='boss'){ setTimeout(victory,700); return; }
+  sDoor();
+  toast('모든 적을 처치했다! 문이 열린다.');
+}
+function handlePlate(){
+  if(R.solved||!R.plates.length)return;
+  const pl=R.plates.find(p=>p.x===state.px&&p.y===state.py);
+  if(!pl||pl.done)return;
+  if(pl.o===R.plateNext){
+    pl.done=true; R.plateNext++;
+    tone(330+pl.o*90,.14,'triangle',.08);
+    if(R.plateNext>R.plates.length){
+      R.solved=true; sDoor();
+      toast('퍼즐 완성! 문이 열린다.');
+    }
+  }else{
+    R.plates.forEach(p=>p.done=false); R.plateNext=1;
+    sWrong(); toast('순서가 틀렸다! 발판이 초기화된다.');
+  }
+}
+function handleItem(){
+  const it=R.items.find(i=>!i.taken&&i.x===state.px&&i.y===state.py);
+  if(!it)return;
+  if(it.type==='heart'){
+    if(state.hp>=state.maxHp){toast('체력이 이미 가득하다.');return;}
+    state.hp++; toast('체력을 회복했다! ❤');
+  }else if(it.type==='key'){
+    state.hasKey=true; toast('황금 열쇠를 얻었다! 🗝️');
+  }
+  it.taken=true; sPick();
+  fadeOutPiece(it.el); it.el=null;
+  updateUI();
+}
+function damagePlayer(msg){
+  state.hp--; sHurt(); flashScreen();
+  toast(msg+' 💔'); updateUI();
+  if(state.hp<=0)gameOver();
+}
+function knockback(){
+  const opts=[];
+  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+    if(!dx&&!dy)continue;
+    const x=state.px+dx, y=state.py+dy;
+    if(!inB(x,y))continue;
+    if(enemyAt(x,y))continue;
+    if(doorDirAt(R,x,y))continue;
+    if(trapAt(x,y))continue;
+    opts.push([x,y]);
+  }
+  if(!opts.length)return false;
+  const o=opts[(Math.random()*opts.length)|0];
+  state.px=o[0]; state.py=o[1];
+  return true;
+}
+
+/* ───────────────────── 적 턴 ───────────────────── */
+function canCapture(e,rx,ry){
+  let x=e.x+rx, y=e.y+ry, st=1;
+  while(inB(x,y)&&st<=RANGE[e.type]){
+    if(x===state.px&&y===state.py)return true;
+    if(enemyAt(x,y))return false;
+    x+=rx; y+=ry; st++;
+  }
+  return false;
+}
+function enemyAct(e,noCapture){
+  const px=state.px, py=state.py;
+  const dx=px-e.x, dy=py-e.y;
+
+  if(e.type==='pawn'){
+    if(!noCapture&&Math.abs(dx)===1&&Math.abs(dy)===1)return {capture:true};
+    const steps=[];
+    if(Math.abs(dx)>=Math.abs(dy)){
+      if(dx)steps.push([Math.sign(dx),0]);
+      if(dy)steps.push([0,Math.sign(dy)]);
+    }else{
+      if(dy)steps.push([0,Math.sign(dy)]);
+      if(dx)steps.push([Math.sign(dx),0]);
+    }
+    for(const s of steps){
+      const x=e.x+s[0], y=e.y+s[1];
+      if(canStand(x,y))return {x,y};
+    }
+    return null;
+  }
+
+  const rs=rays(e.type);
+  if(!noCapture){
+    for(const r of rs) if(canCapture(e,r[0],r[1]))return {capture:true};
+  }
+  // 접근: 최대 2칸 슬라이드, 거리가 줄어드는 곳으로
+  const met=(x,y)=>Math.max(Math.abs(px-x),Math.abs(py-y))+.1*(Math.abs(px-x)+Math.abs(py-y));
+  let best=null, bd=met(e.x,e.y);
+  const maxSlide=e.type==='queen'?1:2; // 여왕은 천천히 접근 (움직임 예측 가능)
+  for(const r of rs){
+    for(let st=1;st<=maxSlide;st++){
+      const x=e.x+r[0]*st, y=e.y+r[1]*st;
+      if(!inB(x,y))break;
+      if(enemyAt(x,y)||(x===px&&y===py))break; // 경로 막힘
+      if(!doorDirAt(R,x,y)&&!trapAt(x,y)){
+        const d=met(x,y);
+        if(d<bd-.001){bd=d;best={x,y};}
+      }
+    }
+  }
+  return best;
+}
+async function enemyTurn(){
+  let captured=false;
+  for(const e of R.enemies){
+    if(e.hp<=0||over)continue;
+    if(e.stunned){e.stunned=false;continue;}
+    const act=enemyAct(e,captured);
+    if(!act)continue;
+    if(act.capture){
+      captured=true;
+      await sleep(130);
+      const tx=state.px, ty=state.py;
+      damagePlayer(ENAME[e.type]+'의 공격!');
+      if(knockback()){ e.x=tx; e.y=ty; }
+      posPiece(e); posPlayer();
+      if(over)return;
+      await sleep(260);
+    }else{
+      e.x=act.x; e.y=act.y; posPiece(e);
+      await sleep(150);
+    }
+  }
+}
+
+/* ───────────────────── 방 이동 ───────────────────── */
+function setTint(){
+  boardEl.classList.remove('t-start','t-combat','t-puzzle','t-item','t-trap','t-boss');
+  boardEl.classList.add('t-'+state.cur);
+}
+function enterRoom(){
+  setTint(); spawnPieces(); updateUI(); banner(R.name);
+}
+async function gotoRoom(dir,x,y){
+  sDoor();
+  let idx=DOOR_CELLS[dir].findIndex(c=>c[0]===x&&c[1]===y);
+  if(idx<0)idx=0;
+  boardEl.classList.add('fade-out');
+  await sleep(300);
+  const to=R.doors[dir].to;
+  state.cur=to; R=state.rooms[to]; state.visited[to]=true;
+  const c=DOOR_CELLS[OPP[dir]][idx];
+  state.px=c[0]; state.py=c[1];
+  enterRoom();
+  refreshCells();
+  boardEl.classList.remove('fade-out');
+  await sleep(300);
+}
+
+/* ───────────────────── 게임 흐름 ───────────────────── */
+function newGame(){
+  const D=DIFF[difficulty];
+  RANGE=D.range;
+  el('lgR').textContent=D.range.rook;
+  el('lgB').textContent=D.range.bishop;
+  el('lgQ').textContent=D.range.queen;
+  state={
+    hp:D.hp, maxHp:D.hp, hasKey:false,
+    rooms:dungeonDef(), cur:'start',
+    visited:{start:true}, px:3, py:5,
+  };
+  R=state.rooms.start;
+  over=false; busy=false; hints=[]; kbIdx=0;
+  buildMinimap();
+}
+function startGame(diff){
+  if(diff)difficulty=diff;
+  newGame();
+  enterRoom();
+  playerTurnStart();
+  toast('초록 점을 눌러 나이트를 움직이세요! ['+DIFF[difficulty].label+' 모드]');
+}
+function modeBtns(primary){
+  const other = difficulty==='easy'
+    ? ['⚔ 보통 모드로', ()=>startGame('normal')]
+    : ['🛡 쉬움 모드로', ()=>startGame('easy')];
+  return [[primary, ()=>startGame()], other];
+}
+function gameOver(){
+  over=true;
+  setTimeout(()=>showOverlay('💀 게임 오버',
+    '용감한 나이트가 쓰러졌다…<br>던전은 다시 어둠에 잠겼다.',
+    modeBtns('다시 도전')),700);
+}
+function victory(){
+  over=true; sWin();
+  setTimeout(()=>showOverlay('🏆 승리!',
+    '여왕을 물리치고 던전을 정복했다!<br>체스판의 평화가 돌아왔다. ♞',
+    modeBtns('다시 플레이')),900);
+}
+
+/* ───────────────────── 입력 ───────────────────── */
+/* 커서가 미니맵 영역에 있으면 미니맵을 투명하게 */
+const mmEl=el('minimap');
+boardEl.parentElement.addEventListener('mousemove',ev=>{
+  const r=mmEl.getBoundingClientRect();
+  mmEl.classList.toggle('peek',
+    ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom);
+});
+boardEl.parentElement.addEventListener('mouseleave',()=>mmEl.classList.remove('peek'));
+
+boardEl.parentElement.addEventListener('click',ev=>{
+  if(overlayVisible||busy||over)return;
+  const rect=boardEl.getBoundingClientRect();
+  const cs=rect.width/N; // 화면 스케일이 적용된 실제 칸 크기
+  const x=Math.floor((ev.clientX-rect.left)/cs);
+  const y=Math.floor((ev.clientY-rect.top)/cs);
+  if(!inB(x,y))return;
+  const h=hints.find(t=>t.x===x&&t.y===y);
+  if(h){doMove(h);return;}
+  const dir=doorDirAt(R,x,y);
+  if(dir){
+    const st=doorState(R,dir);
+    if(st==='locked')toast('잠겨 있다. 황금 열쇠가 필요하다! 🔒');
+    else if(st==='closed'){
+      if(R.clearLock&&R.enemies.some(e=>e.hp>0))toast('적을 모두 처치해야 문이 열린다!');
+      else toast('발판을 순서대로 밟아야 한다.');
+    }
+  }
+});
+window.addEventListener('keydown',ev=>{
+  if(overlayVisible){
+    if(ev.key==='Enter'){
+      const b=el('ovBtns').querySelector('button');
+      if(b)b.click();
+    }
+    return;
+  }
+  if(busy||over||!hints.length)return;
+  const k=ev.key;
+  if(k==='ArrowRight'||k==='ArrowDown'||k==='Tab'){
+    kbIdx=(kbIdx+1)%hints.length; refreshCells(); ev.preventDefault();
+  }else if(k==='ArrowLeft'||k==='ArrowUp'){
+    kbIdx=(kbIdx-1+hints.length)%hints.length; refreshCells(); ev.preventDefault();
+  }else if(k==='Enter'||k===' '){
+    doMove(hints[kbIdx]); ev.preventDefault();
+  }else if(/^[1-8]$/.test(k)){
+    const i=+k-1;
+    if(i<hints.length)doMove(hints[i]);
+  }
+});
+
+/* ───────────────────── 화면 맞춤 스케일 (iframe 대응) ───────────────────── */
+const appEl=el('app');
+function fitScale(){
+  const w=appEl.offsetWidth, h=appEl.offsetHeight;
+  const s=Math.min(1, window.innerWidth/w, window.innerHeight/h);
+  appEl.style.transform='translateX(-50%) scale('+s+')';
+}
+window.addEventListener('resize',fitScale);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',fitScale);
+// 일부 임베드 환경에서 resize 이벤트가 누락될 때를 위한 폴백
+let lastVW=0,lastVH=0;
+setInterval(()=>{
+  if(window.innerWidth!==lastVW||window.innerHeight!==lastVH){
+    lastVW=window.innerWidth; lastVH=window.innerHeight; fitScale();
+  }
+},400);
+
+/* ───────────────────── 시작 ───────────────────── */
+newGame();
+enterRoom();
+refreshCells();
+showOverlay('♞ 나이트 던전',
+  '체스 나이트가 되어 저주받은 체스판 던전을 정복하라!<br><br>'+
+  '• 나이트는 <b>L자(2+1칸)</b>로만 움직인다<br>'+
+  '• <b style="color:#5f8">초록 점</b> = 이동 가능 칸, <b style="color:#f66">붉은 칸</b> = 적의 공격 범위<br>'+
+  '• 적이 있는 칸에 착지하면 처치!<br>'+
+  '• 모든 적을 쓰러뜨리면 문이 열린다 — 여왕을 잡으면 승리!<br>'+
+  '• <b>보통</b>: 체력 3칸 / <b style="color:#8fd4b8">쉬움</b>: 체력 5칸 + 적 사거리 감소',
+  [['⚔ 보통 모드 시작', ()=>startGame('normal')],
+   ['🛡 쉬움 모드 시작', ()=>startGame('easy')]]);
+fitScale();
+</script>
+</body>
+</html>

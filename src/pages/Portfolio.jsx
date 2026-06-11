@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AI_PROJECTS } from '../data/aiProjects'
 
 export const ALL_PROJECTS = [
   {
@@ -185,6 +186,10 @@ export const ALL_PROJECTS = [
     duration: '진행 중',
     tech: ['React', 'Vite', 'Supabase', 'Vercel', 'React Router'],
     overview: 'React + Vite로 개발한 개인 포트폴리오 겸 브랜딩 사이트. Supabase 기반 블로그, Tiptap 리치에디터, Vercel 자동 배포를 포함합니다.',
+    desc: [
+      'React + Vite 기반 개인 포트폴리오 사이트',
+      'Supabase 연동 블로그 시스템 및 관리자 대시보드 포함',
+    ],
     roles: [
       'React + Vite 프로젝트 설계 및 구현',
       'Supabase 연동 블로그 시스템 개발',
@@ -195,6 +200,9 @@ export const ALL_PROJECTS = [
       '네이비 다크 테마 + 애니메이션 메인 페이지',
       '회사별 포트폴리오 그룹핑',
       '웹 프로젝트 인앱 iframe 실행',
+    ],
+    review: [
+      '처음으로 React와 웹 기술 스택을 이용해 완성한 프로젝트',
     ],
     contribution: { percent: 100, text: '1인 단독 개발' },
     images: [
@@ -214,6 +222,7 @@ const COMPANIES = [
 const TABS = [
   { id: 'desktop', label: 'Windows / Linux App' },
   { id: 'web', label: 'Web' },
+  { id: 'AI', label: 'AI' },
   { id: 'api', label: 'API', soon: true },
   { id: 'game', label: 'Game', soon: true },
 ]
@@ -229,13 +238,14 @@ export default function Portfolio() {
   }))
 
   const webProjects = ALL_PROJECTS.filter(p => p.category === 'web')
+  const aiProjects = AI_PROJECTS 
 
   return (
     <section className="page portfolio-page">
       <header className="portfolio-header">
         <span className="about-label">// portfolio</span>
         <h1>Portfolio</h1>
-        <p className="about-role">지금까지 작업한 프로젝트들입니다.</p>
+        <p className="about-role">지금까지 작업한 프로젝트들입니다. 단, AI Tab에 위치한 프로젝트들은 AI 기술을 활용해 제작된 프로젝트입니다. </p>
       </header>
 
       <div className="pf-tabs">
@@ -269,18 +279,18 @@ export default function Portfolio() {
                     style={{ cursor: 'pointer' }}
                   >
                     <div className="pf-card-top">
-  <span className="pf-card-icon">{project.icon}</span>
-  <div style={{ display: 'flex', gap: '6px', marginLeft: 'auto' }}>
-    {project.platforms?.map(platform => (
-      <span
-        key={platform}
-        className={`pf-card-badge badge-${platform.toLowerCase()}`}
-      >
-        {platform}
-      </span>
-    ))}
-  </div>
-</div>
+                      <span className="pf-card-icon">{project.icon}</span>
+                      <div style={{ display: 'flex', gap: '6px', marginLeft: 'auto' }}>
+                        {project.platforms?.map(platform => (
+                          <span
+                            key={platform}
+                            className={`pf-card-badge badge-${platform.toLowerCase()}`}
+                          >
+                            {platform}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                     <h3 className="pf-card-title">{project.title}</h3>
                     <p className="pf-card-desc">{project.overview.slice(0, 60)}</p>
                     <div className="pf-card-tags">
@@ -307,18 +317,18 @@ export default function Portfolio() {
               style={{ cursor: 'pointer' }}
             >
               <div className="pf-card-top">
-  <span className="pf-card-icon">{project.icon}</span>
-  <div style={{ display: 'flex', gap: '6px', marginLeft: 'auto' }}>
-    {project.platforms?.map(platform => (
-      <span
-        key={platform}
-        className={`pf-card-badge badge-${platform.toLowerCase()}`}
-      >
-        {platform}
-      </span>
-    ))}
-  </div>
-</div>
+                <span className="pf-card-icon">{project.icon}</span>
+                <div style={{ display: 'flex', gap: '6px', marginLeft: 'auto' }}>
+                  {project.platforms?.map(platform => (
+                    <span
+                      key={platform}
+                      className={`pf-card-badge badge-${platform.toLowerCase()}`}
+                    >
+                      {platform}
+                    </span>
+                  ))}
+                </div>
+              </div>
               <h3 className="pf-card-title">{project.title}</h3>
               <span className="pf-card-period">{project.period}</span>
               <p className="pf-card-desc">{project.overview.slice(0, 60)}</p>
@@ -332,6 +342,35 @@ export default function Portfolio() {
           ))}
         </div>
       )}
+
+      {activeTab === 'AI' && (
+  <div className="pf-grid">
+    {aiProjects.map(project => (
+      <div
+        key={project.id}
+        className="pf-card"
+        onClick={() => navigate(`/portfolio/ai/${project.id}`)}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="pf-card-top">
+          <span className="pf-card-icon">{project.icon}</span>
+          <div style={{ display: 'flex', gap: '6px', marginLeft: 'auto' }}>
+            <span className="pf-card-badge badge-ai">AI Made</span>
+            <span className="pf-card-badge badge-game">Game</span>
+          </div>
+        </div>
+        <h3 className="pf-card-title">{project.title}</h3>
+        <p className="pf-card-desc">{project.desc?.slice(0, 60)}</p>
+        <div className="pf-card-tags">
+          {project.tech.map(t => <span key={t} className="pf-card-tag">{t}</span>)}
+        </div>
+        <div className="pf-card-footer">
+          <span className="pf-card-hint">→ 데모 보기</span>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
 
       {openProject && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setOpenProject(null)}>

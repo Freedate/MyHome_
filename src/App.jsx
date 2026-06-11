@@ -7,6 +7,7 @@ import Portfolio from './pages/Portfolio'
 import Blog from './pages/Blog'
 import BlogDetail from './pages/BlogDetail'
 import ProjectDetail from './pages/ProjectDetail'
+import AiDetail from './pages/AiDetail'
 import Admin from './pages/Admin'
 import Write from './pages/Write'
 import Edit from './pages/Edit'
@@ -33,6 +34,7 @@ function AnimatedRoutes() {
       <Route path="/about" element={<About />} />
       <Route path="/portfolio" element={<Portfolio />} />
       <Route path="/portfolio/:id" element={<ProjectDetail />} />
+      <Route path="/portfolio/ai/:id" element={<AiDetail />} />
       <Route path="/blog" element={<Blog />} />
       <Route path="/blog/:id" element={<BlogDetail />} />
       <Route path="/admin" element={<Admin />} />
