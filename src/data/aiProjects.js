@@ -17,4 +17,13 @@ export const AI_PROJECTS = [
   demoUrl: '/demos/game2/knight-dungeon.html',
   review: '어제 만든 VIPER MAZE에 이어 Claude Code와 함께 만든 두 번째 작품. 젤다의 전설 던전 구조에 체스 나이트의 이동 규칙을 결합한다는 아이디어로 시작했다. 체스 말의 이동 규칙을 적 AI에도 그대로 적용하니 단순한 아이디어만으로 전략적인 게임성이 자연스럽게 생겨났다.',
 },
+{
+  id: 'ai_theremin',
+  icon: '🎵',
+  title: 'Theremin Visualizer',
+  desc: '마우스 움직임이 소리와 빛이 되는 인터랙티브 뮤직 비주얼라이저. 마우스의 Y축 위치가 음높이를 결정하고(위=고음, 아래=저음), 이동 속도가 음량을 조절한다. 화면 위쪽에서는 보라/파랑 계열, 아래쪽에서는 초록/노랑 계열의 네온 파형이 실시간으로 그려지며 잔상처럼 겹겹이 쌓인다. 클릭하면 타악기 효과음과 함께 파티클이 폭발하고, 더블클릭으로 화면을 초기화할 수 있다.',
+  tech: ['HTML', 'JavaScript', 'Canvas API', 'Web Audio API'],
+  demoUrl: '/demos/interactive1/theremin-visualizer.html',
+  review: 'Claude Code로 만든 세 번째 작품. 게임이 아닌 인터랙티브 아트를 처음 시도해봤다. 마우스 움직임 하나로 소리와 시각이 동시에 반응하는 걸 보니 단순한 HTML 파일인데도 꽤 몰입감이 있었다. 테레민이라는 악기 컨셉을 잡은 게 주효했던 것 같다.',
+},
 ]

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Theremin Visualizer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #060612;
+    cursor: crosshair;
+    -webkit-user-select: none; user-select: none;
+    touch-action: none;
+  }
+  #stage { display: block; width: 100vw; height: 100vh; }
+
+  /* HUD */
+  #hud {
+    position: fixed; right: 18px; bottom: 16px;
+    font-family: "SF Mono", "Consolas", monospace;
+    color: #9fb6ff;
+    font-size: 13px;
+    text-align: right;
+    line-height: 1.6;
+    pointer-events: none;
+    text-shadow: 0 0 8px rgba(80,120,255,0.5);
+    opacity: 0.9;
+  }
+  #hud .val { color: #e8f0ff; font-weight: 600; }
+  #hud .bar {
+    display: inline-block; width: 90px; height: 6px;
+    background: rgba(255,255,255,0.08); border-radius: 3px;
+    vertical-align: middle; margin-left: 6px; overflow: hidden;
+  }
+  #hud .bar > i {
+    display: block; height: 100%; width: 0%;
+    background: linear-gradient(90deg, #00e5ff, #b388ff);
+    border-radius: 3px; transition: width 0.05s linear;
+  }
+
+  /* 안내 문구 */
+  #hint {
+    position: fixed; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: "Helvetica Neue", "Apple SD Gothic Neo", sans-serif;
+    color: rgba(200,210,255,0.85);
+    font-size: clamp(16px, 3.2vw, 26px);
+    font-weight: 300; letter-spacing: 1px;
+    text-align: center;
+    pointer-events: none;
+    text-shadow: 0 0 24px rgba(120,150,255,0.6);
+    transition: opacity 1.2s ease;
+    white-space: nowrap;
+  }
+  #hint small {
+    display: block; margin-top: 12px; font-size: 0.55em;
+    color: rgba(150,170,255,0.5); letter-spacing: 0.5px;
+  }
+  #hint.gone { opacity: 0; }
+</style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div id="hint">화면을 터치하거나 마우스를 움직여보세요
+    <small>클릭: 타악 · 더블클릭: 초기화</small>
+  </div>
+  <div id="hud">
+    <div>PITCH <span class="val" id="hzVal">—</span> Hz</div>
+    <div>VOL <span class="bar"><i id="volBar"></i></span></div>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- Canvas 설정 ----------
+  const canvas = document.getElementById("stage");
+  const ctx = canvas.getContext("2d");
+  let W = 0, H = 0, DPR = 1;
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  // ---------- 상태 ----------
+  const FREQ_MIN = 200, FREQ_MAX = 800;
+  let mouse = { x: W * 0.5, y: H * 0.5, prevX: W * 0.5, prevY: H * 0.5, active: false };
+  let speed = 0;            // 부드럽게 평활화된 이동 속도(px/frame)
+  let targetSpeed = 0;
+  let lastMoveTime = 0;
+  let curFreq = (FREQ_MIN + FREQ_MAX) / 2;
+  let displayVol = 0;
+
+  // 파형 잔상 레이어용 — 최근 궤적 포인트
+  const trail = [];          // {x,y,amp,hue,life}
+  const TRAIL_MAX = 90;
+  const particles = [];      // 클릭 파티클
+
+  // ---------- Web Audio ----------
+  let audioCtx = null;
+  let osc1 = null, osc2 = null, masterGain = null, filter = null;
+  let audioReady = false;
+
+  function initAudio() {
+    if (audioReady) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AC();
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0;
+
+    filter = audioCtx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 2200;
+    filter.Q.value = 0.7;
+
+    // sine + triangle 믹스로 부드러운 음색
+    osc1 = audioCtx.createOscillator();
+    osc1.type = "sine";
+    const g1 = audioCtx.createGain(); g1.gain.value = 0.65;
+
+    osc2 = audioCtx.createOscillator();
+    osc2.type = "triangle";
+    const g2 = audioCtx.createGain(); g2.gain.value = 0.35;
+
+    osc1.connect(g1); osc2.connect(g2);
+    g1.connect(filter); g2.connect(filter);
+    filter.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+
+    osc1.frequency.value = curFreq;
+    osc2.frequency.value = curFreq;
+    osc1.start(); osc2.start();
+
+    audioReady = true;
+  }
+
+  function setFreq(f) {
+    if (!audioReady) return;
+    const t = audioCtx.currentTime;
+    osc1.frequency.setTargetAtTime(f, t, 0.03);
+    osc2.frequency.setTargetAtTime(f, t, 0.03);
+  }
+
+  function setVol(v) {
+    if (!audioReady) return;
+    const t = audioCtx.currentTime;
+    // 멈추면 0.8초 페이드아웃 / 움직이면 빠르게 반응
+    const tc = v > masterGain.gain.value ? 0.04 : 0.28; // 0.28*~3 ≈ 0.8s
+    masterGain.gain.setTargetAtTime(v, t, tc);
+  }
+
+  // 클릭 타악 효과음
+  function percussion() {
+    if (!audioReady) return;
+    const t = audioCtx.currentTime;
+    const pg = audioCtx.createGain();
+    pg.gain.setValueAtTime(0.0001, t);
+    pg.gain.exponentialRampToValueAtTime(0.6, t + 0.005);
+    pg.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+
+    // 톤 + 노이즈 버스트
+    const po = audioCtx.createOscillator();
+    po.type = "sine";
+    po.frequency.setValueAtTime(Math.max(curFreq, 300), t);
+    po.frequency.exponentialRampToValueAtTime(80, t + 0.3);
+
+    const noiseBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.15, audioCtx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = noiseBuf;
+    const ng = audioCtx.createGain(); ng.gain.value = 0.25;
+
+    po.connect(pg); noise.connect(ng); ng.connect(pg);
+    pg.connect(audioCtx.destination);
+    po.start(t); po.stop(t + 0.36);
+    noise.start(t);
+  }
+
+  // ---------- 색상: Y축 → HSL ----------
+  // 위(고음): 보라/파랑(270~210), 중간: 청록(180), 아래(저음): 초록/노랑(140~80)
+  function hueForY(y) {
+    const r = clamp(y / H, 0, 1); // 0=위, 1=아래
+    return 270 - r * 190;         // 270 → 80
+  }
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  // ---------- 입력 ----------
+  function pointerMove(x, y) {
+    initAudio();
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+
+    mouse.prevX = mouse.x; mouse.prevY = mouse.y;
+    mouse.x = x; mouse.y = y;
+    mouse.active = true;
+    lastMoveTime = performance.now();
+    hideHint();
+
+    const dx = mouse.x - mouse.prevX;
+    const dy = mouse.y - mouse.prevY;
+    const inst = Math.hypot(dx, dy);
+    targetSpeed = inst;
+
+    // 궤적 포인트 추가
+    const amp = clamp(inst * 0.9, 2, 140);
+    trail.push({ x, y, amp, hue: hueForY(y), life: 1 });
+    if (trail.length > TRAIL_MAX) trail.shift();
+  }
+
+  function getPos(e) {
+    if (e.touches && e.touches[0]) return [e.touches[0].clientX, e.touches[0].clientY];
+    return [e.clientX, e.clientY];
+  }
+
+  window.addEventListener("mousemove", (e) => pointerMove(e.clientX, e.clientY));
+  window.addEventListener("touchmove", (e) => { const [x,y]=getPos(e); pointerMove(x,y); e.preventDefault(); }, {passive:false});
+  window.addEventListener("touchstart", (e) => { initAudio(); if(audioCtx)audioCtx.resume(); const [x,y]=getPos(e); mouse.x=x;mouse.y=y;mouse.prevX=x;mouse.prevY=y; burst(x,y); percussion(); hideHint(); e.preventDefault(); }, {passive:false});
+
+  window.addEventListener("mousedown", (e) => {
+    initAudio();
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    burst(e.clientX, e.clientY);
+    percussion();
+    hideHint();
+  });
+
+  window.addEventListener("dblclick", () => {
+    trail.length = 0;
+    particles.length = 0;
+    // 더블클릭 시 깜빡 플래시
+    flash = 1;
+  });
+
+  let flash = 0;
+
+  // 클릭 파티클 폭발 + 파형 튐
+  let kick = 0; // 파형 진폭 순간 증폭
+  function burst(x, y) {
+    kick = 1;
+    const n = 26;
+    const baseHue = hueForY(y);
+    for (let i = 0; i < n; i++) {
+      const ang = (Math.PI * 2 * i) / n + Math.random() * 0.4;
+      const sp = 2 + Math.random() * 6;
+      particles.push({
+        x, y,
+        vx: Math.cos(ang) * sp,
+        vy: Math.sin(ang) * sp,
+        life: 1,
+        hue: baseHue + (Math.random() * 40 - 20),
+        r: 1.5 + Math.random() * 2.5
+      });
+    }
+  }
+
+  // ---------- 안내 문구 ----------
+  const hintEl = document.getElementById("hint");
+  let hintHidden = false;
+  function hideHint() {
+    if (hintHidden) return;
+    hintHidden = true;
+    hintEl.classList.add("gone");
+    setTimeout(() => hintEl.remove(), 1300);
+  }
+
+  // ---------- HUD ----------
+  const hzVal = document.getElementById("hzVal");
+  const volBar = document.getElementById("volBar");
+  let hudTick = 0;
+
+  // ---------- 메인 루프 ----------
+  function loop(now) {
+    requestAnimationFrame(loop);
+
+    // 멈춤 감지
+    const idle = now - lastMoveTime;
+    if (idle > 60) targetSpeed = 0;
+
+    // 속도 평활화
+    speed += (targetSpeed - speed) * 0.15;
+
+    // 음높이: Y축 (위=고음)
+    curFreq = FREQ_MAX - (clamp(mouse.y / H, 0, 1)) * (FREQ_MAX - FREQ_MIN);
+    setFreq(curFreq);
+
+    // 음량: 속도 기반
+    const vol = clamp(speed / 45, 0, 1) * 0.5; // 최대 0.5
+    setVol(vol);
+    displayVol += (vol - displayVol) * 0.2;
+
+    // kick 감쇠
+    kick *= 0.88;
+    flash *= 0.9;
+
+    draw(now);
+
+    // HUD 업데이트 (간헐적)
+    if (now - hudTick > 60) {
+      hudTick = now;
+      hzVal.textContent = Math.round(curFreq);
+      volBar.style.width = clamp(displayVol / 0.5 * 100, 0, 100).toFixed(0) + "%";
+    }
+  }
+
+  function draw(now) {
+    // 잔상: 반투명 배경으로 덮어 서서히 사라지게
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "rgba(6, 6, 18, 0.14)";
+    ctx.fillRect(0, 0, W, H);
+
+    if (flash > 0.01) {
+      ctx.fillStyle = `rgba(120,150,255,${flash * 0.25})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // 발광 합성
+    ctx.globalCompositeOperation = "lighter";
+
+    // ----- 메인 파형: 마우스 궤적을 따라 흐르는 사인파 -----
+    const t = now * 0.004;
+    const ampBase = clamp(speed * 1.4, 4, 160) * (1 + kick * 1.5);
+
+    // 여러 레이어를 그려 겹겹이 쌓이는 느낌
+    drawWaveLayers(t, ampBase);
+
+    // ----- 궤적 포인트 기반 잔상 파형 -----
+    for (let i = trail.length - 1; i >= 0; i--) {
+      const p = trail[i];
+      p.life -= 0.012;
+      if (p.life <= 0) { trail.splice(i, 1); continue; }
+      const a = p.life;
+      const wob = Math.sin(t * 3 + i * 0.5) * p.amp * a * 0.4;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y + wob, 2 + p.amp * 0.05 * a, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue}, 90%, ${55 + a*15}%, ${a * 0.5})`;
+      ctx.shadowColor = `hsla(${p.hue}, 100%, 65%, ${a})`;
+      ctx.shadowBlur = 14 * a;
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+
+    // ----- 파티클 -----
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.05; p.vx *= 0.98; p.vy *= 0.98;
+      p.life -= 0.02;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue}, 95%, 65%, ${p.life})`;
+      ctx.shadowColor = `hsla(${p.hue}, 100%, 70%, ${p.life})`;
+      ctx.shadowBlur = 12 * p.life;
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+
+    // ----- 커서 글로우 -----
+    if (mouse.active) {
+      const hue = hueForY(mouse.y);
+      const glowR = 8 + speed * 0.3 + kick * 20;
+      const grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, glowR * 3);
+      grad.addColorStop(0, `hsla(${hue}, 100%, 70%, 0.9)`);
+      grad.addColorStop(0.4, `hsla(${hue}, 100%, 60%, 0.35)`);
+      grad.addColorStop(1, `hsla(${hue}, 100%, 60%, 0)`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, glowR * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  // 마우스 위치를 중심으로 가로로 흐르는 사인파 레이어들
+  function drawWaveLayers(t, ampBase) {
+    const cy = mouse.y;
+    const hue = hueForY(cy);
+    const layers = 3;
+
+    for (let L = 0; L < layers; L++) {
+      const lf = 1 - L * 0.28;
+      const amp = ampBase * lf;
+      const freqMul = 0.02 + L * 0.008;
+      const phase = t * (1 + L * 0.3);
+      const alpha = (0.5 - L * 0.13) * clamp(speed / 10 + 0.15 + kick, 0.1, 1);
+      const lh = hue + L * 14;
+
+      ctx.beginPath();
+      const step = 6;
+      // 마우스 x를 중심으로 좌우로 뻗어나가는 파형, 가장자리로 갈수록 진폭 감쇠
+      for (let x = 0; x <= W; x += step) {
+        const dist = Math.abs(x - mouse.x);
+        const env = Math.exp(-dist / (W * 0.22)); // 마우스 근처에서 강함
+        const y = cy + Math.sin(x * freqMul + phase) * amp * env
+                     + Math.sin(x * freqMul * 2.3 + phase * 1.7) * amp * env * 0.3;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = `hsla(${lh}, 95%, 62%, ${alpha})`;
+      ctx.lineWidth = 2.4 * lf;
+      ctx.shadowColor = `hsla(${lh}, 100%, 60%, ${alpha})`;
+      ctx.shadowBlur = 18 * lf;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
